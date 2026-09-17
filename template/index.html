@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Feather Editor Template</title>
+  <!-- Feather Editor Stylesheet -->
+  <link rel="stylesheet" href="../styles/feather.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #f8f9fa;
+      color: #1a1a1a;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      transition: background 0.2s, color 0.2s;
+    }
+    body.dark {
+      background: #121212;
+      color: #e0e0e0;
+    }
+    .app-container {
+      width: 100%;
+      max-width: 880px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 4px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .brand svg {
+      width: 24px;
+      height: 24px;
+      color: #2383e2;
+    }
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    body.dark .btn {
+      background: #242424;
+      border-color: #383838;
+      color: #e0e0e0;
+    }
+    .btn:hover {
+      background: #f0f0f0;
+      border-color: #ccc;
+    }
+    body.dark .btn:hover {
+      background: #303030;
+      border-color: #484848;
+    }
+    .editor-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    body.dark .editor-card {
+      background: #1e1e1e;
+      border-color: #2e2e2e;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #757575;
+      padding: 4px 8px;
+    }
+    .stats {
+      display: flex;
+      gap: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <div class="brand">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/>
+          <line x1="16" y1="8" x2="2" y2="22"/>
+          <line x1="17.5" y1="15" x2="9" y2="15"/>
+        </svg>
+        <span>Feather Editor</span>
+      </div>
+      <div class="header-actions">
+        <button id="btn-theme" class="btn" type="button">🌙 Dark Mode</button>
+        <button id="btn-copy-html" class="btn" type="button">📋 Copy HTML</button>
+        <button id="btn-copy-md" class="btn" type="button">📝 Copy Markdown</button>
+      </div>
+    </header>
+
+    <main class="editor-card">
+      <div id="editor"></div>
+    </main>
+
+    <footer>
+      <div class="stats">
+        <span id="word-count">0 words</span>
+        <span>•</span>
+        <span id="char-count">0 characters</span>
+      </div>
+      <div>Zero Dependencies • Feather SVG Icons</div>
+    </footer>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

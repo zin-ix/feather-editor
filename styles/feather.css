@@ -1,0 +1,1322 @@
+/* ============================================================
+   Feather Editor — Minimalist Shadcn Theme
+   A clean, precision-crafted rich text editor design system.
+   Zero external dependencies.
+   ============================================================ */
+
+:root {
+  /* Shadcn Zinc Light Tokens */
+  --feather-bg:                 #ffffff;
+  --feather-fg:                 #09090b;
+  --feather-card:               #ffffff;
+  --feather-card-fg:            #09090b;
+  --feather-popover:            #ffffff;
+  --feather-popover-fg:         #09090b;
+  --feather-primary:            #18181b;
+  --feather-primary-fg:         #fafafa;
+  --feather-secondary:          #f4f4f5;
+  --feather-secondary-fg:       #18181b;
+  --feather-muted:              #f4f4f5;
+  --feather-muted-fg:           #71717a;
+  --feather-accent:             #f4f4f5;
+  --feather-accent-fg:          #18181b;
+  --feather-destructive:        #ef4444;
+  --feather-destructive-fg:     #fafafa;
+  --feather-border:             #e4e4e7;
+  --feather-input:              #e4e4e7;
+  --feather-ring:               #18181b;
+
+  /* Typography */
+  --feather-font-family:        'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --feather-font-mono:          'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  --feather-font-size:          15px;
+  --feather-line-height:        1.7;
+
+  /* Sizing & Radius */
+  --feather-radius:             6px;
+  --feather-radius-sm:          4px;
+  --feather-radius-lg:          8px;
+
+  /* Toolbar & Buttons */
+  --feather-toolbar-bg:         rgba(255, 255, 255, 0.95);
+  --feather-toolbar-border:     #e4e4e7;
+  --feather-toolbar-btn-size:   28px;
+  --feather-toolbar-icon-size:  14px;
+
+  /* Shadows */
+  --feather-shadow-sm:          0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --feather-shadow-md:          0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+  --feather-shadow-lg:          0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+
+  /* Legacy & Compatibility Aliases */
+  --feather-color-bg:           var(--feather-bg);
+  --feather-color-fg:           var(--feather-fg);
+  --feather-color-muted:        var(--feather-muted-fg);
+  --feather-color-border:       var(--feather-border);
+  --feather-color-accent:       var(--feather-primary);
+  --feather-color-accent-hover: #27272a;
+  --feather-color-surface:      var(--feather-secondary);
+  --feather-color-hover:        var(--feather-accent);
+  --feather-color-active-bg:    var(--feather-accent);
+  --feather-color-active-fg:    var(--feather-accent-fg);
+
+  --rune-color-bg:              var(--feather-bg);
+  --rune-color-fg:              var(--feather-fg);
+  --rune-color-muted:           var(--feather-muted-fg);
+  --rune-color-border:          var(--feather-border);
+  --rune-color-accent:          var(--feather-primary);
+  --rune-color-accent-hover:    #27272a;
+  --rune-color-surface:         var(--feather-secondary);
+  --rune-color-hover:           var(--feather-accent);
+  --rune-color-active-bg:       var(--feather-accent);
+  --rune-color-active-fg:       var(--feather-accent-fg);
+  --rune-font-family:           var(--feather-font-family);
+  --rune-font-mono:             var(--feather-font-mono);
+  --rune-font-size:             var(--feather-font-size);
+  --rune-line-height:           var(--feather-line-height);
+  --rune-radius:                var(--feather-radius);
+  --rune-radius-sm:             var(--feather-radius-sm);
+  --rune-radius-lg:             var(--feather-radius-lg);
+  --rune-toolbar-bg:            var(--feather-toolbar-bg);
+  --rune-toolbar-border:        var(--feather-toolbar-border);
+  --rune-toolbar-btn-size:      var(--feather-toolbar-btn-size);
+  --rune-toolbar-icon-size:     var(--feather-toolbar-icon-size);
+  --rune-shadow-sm:             var(--feather-shadow-sm);
+  --rune-shadow-md:             var(--feather-shadow-md);
+  --rune-shadow-lg:             var(--feather-shadow-lg);
+}
+
+/* Shadcn Dark Theme */
+.feather-dark, .rune-dark, [data-theme="dark"] {
+  --feather-bg:                 #09090b;
+  --feather-fg:                 #f4f4f5;
+  --feather-card:               #09090b;
+  --feather-card-fg:            #f4f4f5;
+  --feather-popover:            #09090b;
+  --feather-popover-fg:         #f4f4f5;
+  --feather-primary:            #f4f4f5;
+  --feather-primary-fg:         #09090b;
+  --feather-secondary:          #18181b;
+  --feather-secondary-fg:       #f4f4f5;
+  --feather-muted:              #18181b;
+  --feather-muted-fg:           #a1a1aa;
+  --feather-accent:             #18181b;
+  --feather-accent-fg:          #f4f4f5;
+  --feather-destructive:        #7f1d1d;
+  --feather-destructive-fg:     #f4f4f5;
+  --feather-border:             #27272a;
+  --feather-input:              #27272a;
+  --feather-ring:               #d4d4d8;
+
+  --feather-toolbar-bg:         rgba(9, 9, 11, 0.95);
+  --feather-toolbar-border:     #27272a;
+
+  --feather-color-bg:           var(--feather-bg);
+  --feather-color-fg:           var(--feather-fg);
+  --feather-color-muted:        var(--feather-muted-fg);
+  --feather-color-border:       var(--feather-border);
+  --feather-color-accent:       var(--feather-primary);
+  --feather-color-surface:      var(--feather-secondary);
+  --feather-color-hover:        var(--feather-accent);
+  --feather-color-active-bg:    var(--feather-accent);
+  --feather-color-active-fg:    var(--feather-accent-fg);
+}
+
+/* ── Editor Container ──────────────────────────────────────── */
+
+.feather-editor, .rune-editor {
+  position: relative;
+  font-family: var(--feather-font-family);
+  font-size: var(--feather-font-size);
+  color: var(--feather-fg);
+  background: var(--feather-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+.feather-wrapper, .rune-wrapper {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--feather-border);
+  border-radius: var(--feather-radius-lg);
+  background: var(--feather-bg);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.feather-editor.feather-focused .feather-wrapper,
+.rune-editor.rune-focused .rune-wrapper {
+  border-color: var(--feather-ring);
+  box-shadow: 0 0 0 1px var(--feather-ring);
+}
+
+.feather-editor.feather-disabled .feather-content,
+.rune-editor.rune-disabled .rune-content {
+  opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── Toolbar ───────────────────────────────────────────────── */
+
+.feather-toolbar, .rune-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  min-height: 38px;
+  background: var(--feather-toolbar-bg);
+  border-bottom: 1px solid var(--feather-toolbar-border);
+  border-radius: var(--feather-radius-lg) var(--feather-radius-lg) 0 0;
+  flex-wrap: wrap;
+  row-gap: 3px;
+  backdrop-filter: blur(8px);
+}
+
+.feather-toolbar-divider, .rune-toolbar-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--feather-border);
+  margin: 0 3px;
+  flex-shrink: 0;
+}
+
+.feather-toolbar-btn, .rune-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: var(--feather-toolbar-btn-size);
+  height: var(--feather-toolbar-btn-size);
+  border: none;
+  background: transparent;
+  border-radius: var(--feather-radius-sm);
+  color: var(--feather-muted-fg);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+  flex-shrink: 0;
+  padding: 0;
+  position: relative;
+}
+
+.feather-toolbar-btn svg, .rune-toolbar-btn svg {
+  width: var(--feather-toolbar-icon-size);
+  height: var(--feather-toolbar-icon-size);
+  stroke-width: 1.75;
+  flex-shrink: 0;
+}
+
+.feather-toolbar-btn:hover, .rune-toolbar-btn:hover {
+  background: var(--feather-accent);
+  color: var(--feather-fg);
+}
+
+.feather-toolbar-btn.is-active, .rune-toolbar-btn.is-active {
+  background: var(--feather-accent);
+  color: var(--feather-fg);
+  font-weight: 500;
+}
+
+.feather-toolbar-btn--dropdown, .rune-toolbar-btn--dropdown {
+  width: auto;
+  padding: 0 6px;
+  font-size: 12px;
+}
+
+.feather-chevron, .rune-chevron {
+  opacity: 0.5;
+  margin-left: 1px;
+}
+
+/* Inline Font Size Input */
+.feather-fontsize-wrap, .rune-fontsize-wrap {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+.feather-fontsize-input, .rune-fontsize-input {
+  width: 44px;
+  height: 24px;
+  border: 1px solid var(--feather-border);
+  border-radius: var(--feather-radius-sm);
+  background: var(--feather-bg);
+  color: var(--feather-fg);
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 500;
+  text-align: center;
+  padding: 0 2px;
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+  -moz-appearance: textfield;
+}
+
+.feather-fontsize-input::-webkit-inner-spin-button,
+.feather-fontsize-input::-webkit-outer-spin-button,
+.rune-fontsize-input::-webkit-inner-spin-button,
+.rune-fontsize-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.feather-fontsize-input:hover, .rune-fontsize-input:hover {
+  border-color: var(--feather-muted-fg);
+}
+
+.feather-fontsize-input:focus, .rune-fontsize-input:focus {
+  border-color: var(--feather-ring);
+  box-shadow: 0 0 0 1px var(--feather-ring);
+}
+
+/* Dropdown */
+.feather-toolbar-dropdown-wrap, .rune-toolbar-dropdown-wrap {
+  position: relative;
+}
+
+.feather-toolbar-dropdown, .rune-toolbar-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 140px;
+  background: var(--feather-popover);
+  border: 1px solid var(--feather-border);
+  border-radius: var(--feather-radius);
+  box-shadow: var(--feather-shadow-md);
+  padding: 4px;
+  z-index: 200;
+}
+
+.feather-toolbar-dropdown-wrap.is-open .feather-toolbar-dropdown,
+.rune-toolbar-dropdown-wrap.is-open .rune-toolbar-dropdown {
+  display: block;
+}
+
+.feather-toolbar-dropdown-item, .rune-toolbar-dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 5px 8px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: var(--feather-radius-sm);
+  font-size: 12.5px;
+  color: var(--feather-fg);
+  cursor: pointer;
+  transition: background 100ms;
+}
+
+.feather-toolbar-dropdown-item:hover, .rune-toolbar-dropdown-item:hover {
+  background: var(--feather-accent);
+  color: var(--feather-accent-fg);
+}
+
+/* ── Content Area ──────────────────────────────────────────── */
+
+.feather-content, .rune-content {
+  outline: none;
+  padding: 1.5rem 2rem 3rem;
+  line-height: var(--feather-line-height);
+  min-height: 200px;
+  caret-color: var(--feather-fg);
+  color: var(--feather-fg);
+  background: var(--feather-bg);
+  word-break: break-word;
+  overflow-wrap: break-word;
+  border-radius: 0 0 var(--feather-radius-lg) var(--feather-radius-lg);
+}
+
+/* Placeholder */
+.feather-content:empty::before, .rune-content:empty::before,
+.feather-content > p:only-child:empty::before, .rune-content > p:only-child:empty::before,
+.feather-content > p:only-child > br:only-child::before, .rune-content > p:only-child > br:only-child::before {
+  content: attr(data-placeholder);
+  color: var(--feather-muted-fg);
+  pointer-events: none;
+  user-select: none;
+  position: absolute;
+}
+
+/* ── Block Elements ────────────────────────────────────────── */
+
+.feather-content > *, .rune-content > * {
+  margin: 4px 0;
+}
+
+.feather-content p, .rune-content p {
+  margin: 0;
+  padding: 3px 0;
+}
+
+.feather-content h1, .rune-content h1,
+.feather-content h2, .rune-content h2,
+.feather-content h3, .rune-content h3,
+.feather-content h4, .rune-content h4 {
+  margin: 0;
+  padding: 4px 0;
+  line-height: 1.35;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--feather-fg);
+}
+
+.feather-content h1, .rune-content h1 { font-size: 1.75em; margin-top: 1.25em; }
+.feather-content h2, .rune-content h2 { font-size: 1.4em;  margin-top: 1em; }
+.feather-content h3, .rune-content h3 { font-size: 1.15em; margin-top: 0.75em; }
+
+.feather-content h1:first-child, .rune-content h1:first-child,
+.feather-content h2:first-child, .rune-content h2:first-child,
+.feather-content h3:first-child, .rune-content h3:first-child {
+  margin-top: 0;
+}
+
+.feather-content ul, .rune-content ul,
+.feather-content ol, .rune-content ol {
+  margin: 4px 0;
+  padding-left: 1.5em;
+}
+
+.feather-content li, .rune-content li {
+  padding: 2px 0;
+}
+
+.feather-content blockquote, .rune-content blockquote {
+  margin: 8px 0;
+  padding: 4px 14px;
+  border-left: 2px solid var(--feather-border);
+  color: var(--feather-muted-fg);
+  font-style: italic;
+}
+
+.feather-content hr, .rune-content hr.rune-hr {
+  border: none;
+  border-top: 1px solid var(--feather-border);
+  margin: 24px 0;
+  background: none !important;
+}
+
+.feather-content pre, .rune-content pre {
+  margin: 8px 0;
+  padding: 0.85rem 1.15rem;
+  background: #09090b;
+  color: #f4f4f5;
+  border: 1px solid var(--feather-border);
+  border-radius: var(--feather-radius);
+  overflow-x: auto;
+  font-family: var(--feather-font-mono);
+  font-size: 0.85em;
+  line-height: 1.6;
+  tab-size: 2;
+}
+
+.feather-content pre code, .rune-content pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+  border: none;
+}
+
+/* ── Inline Marks ──────────────────────────────────────────── */
+
+.feather-content a, .rune-content a {
+  color: var(--feather-fg);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--feather-border);
+  transition: text-decoration-color 120ms ease;
+  cursor: pointer;
+}
+
+.feather-content a:hover, .rune-content a:hover {
+  text-decoration-color: currentColor;
+}
+
+.feather-content code, .rune-content code {
+  font-family: var(--feather-font-mono);
+  font-size: 0.875em;
+  background: var(--feather-muted);
+  color: var(--feather-fg);
+  border: 1px solid var(--feather-border);
+  padding: 0.15em 0.4em;
+  border-radius: var(--feather-radius-sm);
+}
+
+.feather-content strong, .rune-content strong { font-weight: 600; }
+.feather-content em, .rune-content em         { font-style: italic; }
+.feather-content u, .rune-content u           { text-decoration: underline; text-underline-offset: 2px; }
+.feather-content s, .rune-content s           { text-decoration: line-through; opacity: 0.6; }
+
+/* ── Bubble Menu ───────────────────────────────────────────── */
+
+.feather-bubble-menu, .rune-bubble-menu {
+  position: fixed;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 3px 4px;
+  background: var(--feather-popover);
+  border: 1px solid var(--feather-border);
+  border-radius: var(--feather-radius);
+  box-shadow: var(--feather-shadow-md);
+  opacity: 0;
+  transform: translateY(-4px) scale(0.98);
+  pointer-events: none;
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.feather-bubble-menu.is-visible, .rune-bubble-menu.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.feather-bubble-divider, .rune-bubble-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--feather-border);
+  margin: 0 3px;
+}
+
+.feather-bubble-btn, .rune-bubble-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  border-radius: var(--feather-radius-sm);
+  color: var(--feather-muted-fg);
+  cursor: pointer;
+  transition: background 100ms, color 100ms;
+  padding: 0;
+}
+
+.feather-bubble-btn svg, .rune-bubble-btn svg {
+  width: 13px;
+  height: 13px;
+  stroke-width: 1.75;
+}
+
+.feather-bubble-btn:hover, .rune-bubble-btn:hover {
+  background: var(--feather-accent);
+  color: var(--feather-fg);
+}
+
+.feather-bubble-btn.is-active, .rune-bubble-btn.is-active {
+  color: var(--feather-fg);
+  background: var(--feather-accent);
+}
+
+/* ── Slash Menu ────────────────────────────────────────────── */
+
+.feather-slash-menu, .rune-slash-menu {
+  position: fixed;
+  z-index: 400;
+  width: 280px;
+  max-height: 340px;
+  overflow-y: auto;
+  background: var(--feather-popover);
+  border: 1px solid var(--feather-border);
+  border-radius: var(--feather-radius-lg);
+  box-shadow: var(--feather-shadow-lg);
+  padding: 4px;
+  scrollbar-width: thin;
+  opacity: 0;
+  transform: translateY(-4px) scale(0.98);
+  transform-origin: top left;
+  pointer-events: none;
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.feather-slash-menu.is-open, .rune-slash-menu.is-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.feather-slash-header, .rune-slash-header {
+  padding: 6px 8px 4px;
+  display: flex;
+  align-items: center;
+}
+
+.feather-slash-hint, .rune-slash-hint {
+  font-size: 11px;
+  color: var(--feather-muted-fg);
+}
+
+.feather-slash-section, .rune-slash-section {
+  padding: 6px 8px 3px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--feather-muted-fg);
+  text-transform: uppercase;
+}
+
+.feather-slash-item, .rune-slash-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+  border-radius: var(--feather-radius-sm);
+  transition: background 80ms ease;
+}
+
+.feather-slash-item:hover, .rune-slash-item:hover,
+.feather-slash-item.is-active, .rune-slash-item.is-active {
+  background: var(--feather-accent);
+  color: var(--feather-accent-fg);
+}
+
+.feather-slash-icon, .rune-slash-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--feather-border);
+  border-radius: var(--feather-radius-sm);
+  background: var(--feather-bg);
+  color: var(--feather-fg);
+  flex-shrink: 0;
+}
+
+.feather-slash-icon svg, .rune-slash-icon svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.75;
+}
+
+.feather-slash-title, .rune-slash-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--feather-fg);
+}
+
+.feather-slash-desc, .rune-slash-desc {
+  font-size: 11px;
+  color: var(--feather-muted-fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.feather-slash-empty, .rune-slash-empty {
+  padding: 12px 8px;
+  font-size: 12px;
+  color: var(--feather-muted-fg);
+  text-align: center;
+}
+
+/* ── Popups & Panels ───────────────────────────────────────── */
+
+.feather-toolbar-popup, .rune-toolbar-popup {
+  position: fixed;
+  z-index: 500;
+  background: var(--feather-popover);
+  border: 1px solid var(--feather-border);
+  border-radius: var(--feather-radius);
+  box-shadow: var(--feather-shadow-md);
+  padding: 8px;
+  opacity: 0;
+  transform: translateY(-4px) scale(0.98);
+  pointer-events: none;
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.feather-toolbar-popup.is-open, .rune-toolbar-popup.is-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.feather-panel-section-label, .rune-panel-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--feather-muted-fg);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.feather-panel-input, .rune-panel-input {
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--feather-border);
+  border-radius: var(--feather-radius-sm);
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--feather-fg);
+  background: var(--feather-bg);
+  outline: none;
+  transition: border-color 100ms;
+}
+
+.feather-panel-input:focus, .rune-panel-input:focus {
+  border-color: var(--feather-ring);
+}
+
+.feather-panel-btn-primary, .rune-panel-btn-primary {
+  padding: 5px 10px;
+  background: var(--feather-primary);
+  color: var(--feather-primary-fg);
+  border: none;
+  border-radius: var(--feather-radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 100ms;
+}
+
+.feather-panel-btn-primary:hover, .rune-panel-btn-primary:hover {
+  opacity: 0.85;
+}
+
+/* ── Table Grid Picker ─────────────────────────────────────── */
+
+.feather-table-picker, .rune-table-picker {
+  padding: 4px;
+}
+
+.feather-table-grid, .rune-table-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 16px);
+  grid-auto-rows: 16px;
+  gap: 3px;
+}
+
+.feather-table-grid-cell, .rune-table-grid-cell {
+  border: 1px solid var(--feather-border);
+  border-radius: 2px;
+  background: var(--feather-bg);
+  cursor: pointer;
+  transition: background 80ms ease, border-color 80ms ease;
+}
+
+.feather-table-grid-cell.is-on, .rune-table-grid-cell.is-on {
+  background: var(--feather-primary);
+  border-color: var(--feather-primary);
+}
+
+.feather-table-picker-label, .rune-table-picker-label {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--feather-muted-fg);
+}
+
+/* ── Table Context Menu & Floating Controls ─────────────────── */
+
+.feather-table-add-btn, .rune-table-add-btn {
+  position: fixed;
+  z-index: 690;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--feather-border);
+  border-radius: 50%;
+  background: var(--feather-bg);
+  color: var(--feather-muted-fg);
+  cursor: pointer;
+  box-shadow: var(--feather-shadow-sm);
+  transition: all 100ms ease;
+}
+
+.feather-table-add-btn:hover, .rune-table-add-btn:hover {
+  background: var(--feather-primary);
+  border-color: var(--feather-primary);
+  color: var(--feather-primary-fg);
+}
+
+.feather-table-bar, .rune-table-bar {
+  position: fixed;
+  z-index: 695;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: var(--feather-popover);
+  border: 1px solid var(--feather-border);
+  border-radius: var(--feather-radius);
+  box-shadow: var(--feather-shadow-md);
+}
+
+.feather-table-bar-btn, .rune-table-bar-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--feather-radius-sm);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--feather-fg);
+  white-space: nowrap;
+  transition: background 80ms;
+}
+
+.feather-table-bar-btn:hover, .rune-table-bar-btn:hover {
+  background: var(--feather-accent);
+}
+
+.feather-table-bar-btn.is-danger, .rune-table-bar-btn.is-danger {
+  color: var(--feather-destructive);
+}
+
+.feather-table-bar-btn.is-danger:hover, .rune-table-bar-btn.is-danger:hover {
+  background: #fef2f2;
+}
+
+.feather-table-bar-sep, .rune-table-bar-sep {
+  width: 1px;
+  height: 14px;
+  background: var(--feather-border);
+  margin: 0 2px;
+}
+
+.feather-table-menu, .rune-table-menu {
+  position: fixed;
+  z-index: 700;
+  background: var(--feather-popover);
+  border: 1px solid var(--feather-border);
+  border-radius: var(--feather-radius);
+  box-shadow: var(--feather-shadow-lg);
+  padding: 4px;
+  min-width: 170px;
+  opacity: 0;
+  transform: scale(0.98) translateY(-4px);
+  transform-origin: top left;
+  transition: opacity 120ms ease, transform 120ms ease;
+  pointer-events: none;
+}
+
+.feather-table-menu.is-open, .rune-table-menu.is-open {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+
+.feather-table-menu-item, .rune-table-menu-item {
+  display: block;
+  width: 100%;
+  padding: 5px 8px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: var(--feather-radius-sm);
+  font-size: 12.5px;
+  color: var(--feather-fg);
+  cursor: pointer;
+  transition: background 80ms;
+}
+
+.feather-table-menu-item:hover, .rune-table-menu-item:hover {
+  background: var(--feather-accent);
+}
+
+.feather-table-menu-item.is-danger, .rune-table-menu-item.is-danger {
+  color: var(--feather-destructive);
+}
+
+.feather-table-menu-item.is-danger:hover, .rune-table-menu-item.is-danger:hover {
+  background: #fef2f2;
+}
+
+.feather-table-menu-divider, .rune-table-menu-divider {
+  height: 1px;
+  background: var(--feather-border);
+  margin: 3px 0;
+}
+
+/* ── Color Pickers ─────────────────────────────────────────── */
+
+.feather-panel-colors, .rune-panel-colors {
+  width: 190px;
+}
+
+.feather-panel-color-grid, .rune-panel-color-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+.feather-color-swatch, .rune-color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--feather-radius-sm);
+  border: 1px solid var(--feather-border);
+  cursor: pointer;
+  transition: transform 100ms, box-shadow 100ms;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feather-color-swatch:hover, .rune-color-swatch:hover {
+  transform: scale(1.1);
+  box-shadow: var(--feather-shadow-sm);
+}
+
+/* ── Font & Alignment Panels ────────────────────────────────── */
+
+.feather-panel-align, .rune-panel-align {
+  width: 140px;
+}
+
+.feather-panel-align-row, .rune-panel-align-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--feather-secondary);
+  padding: 2px;
+  border-radius: var(--feather-radius-sm);
+}
+
+.feather-panel-align-btn, .rune-panel-align-btn {
+  flex: 1;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  border-radius: var(--feather-radius-sm);
+  color: var(--feather-muted-fg);
+  cursor: pointer;
+  padding: 0;
+  transition: all 100ms ease;
+}
+
+.feather-panel-align-btn svg, .rune-panel-align-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.feather-panel-align-btn:hover, .rune-panel-align-btn:hover {
+  background: var(--feather-bg);
+  color: var(--feather-fg);
+}
+
+.feather-panel-align-btn.is-active, .rune-panel-align-btn.is-active {
+  background: var(--feather-bg);
+  color: var(--feather-fg);
+  box-shadow: var(--feather-shadow-sm);
+  font-weight: 600;
+}
+
+.feather-panel-fontsize, .rune-panel-fontsize,
+.feather-panel-fontfamily, .rune-panel-fontfamily {
+  width: 200px;
+}
+
+.feather-panel-size-item, .rune-panel-size-item,
+.feather-panel-font-item, .rune-panel-font-item,
+.feather-panel-lh-item, .rune-panel-lh-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 5px 8px;
+  border: none;
+  background: transparent;
+  border-radius: var(--feather-radius-sm);
+  cursor: pointer;
+  font-size: 12.5px;
+  color: var(--feather-fg);
+  transition: background 80ms;
+}
+
+.feather-panel-size-item:hover, .rune-panel-size-item:hover,
+.feather-panel-font-item:hover, .rune-panel-font-item:hover,
+.feather-panel-lh-item:hover, .rune-panel-lh-item:hover {
+  background: var(--feather-accent);
+}
+
+/* ── Link Popover ──────────────────────────────────────────── */
+
+.feather-link-popover, .rune-link-popover {
+  position: fixed;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  font-size: 12.5px;
+  background: var(--feather-popover);
+  border: 1px solid var(--feather-border);
+  border-radius: var(--feather-radius);
+  box-shadow: var(--feather-shadow-md);
+}
+
+.feather-link-row, .rune-link-row { display: flex; gap: 6px; align-items: center; }
+.feather-link-input, .rune-link-input { min-width: 220px; }
+.feather-link-open, .rune-link-open {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--feather-fg);
+  text-decoration: underline;
+}
+.feather-link-sep, .rune-link-sep { width: 1px; height: 14px; background: var(--feather-border); }
+.feather-link-action, .rune-link-action {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--feather-fg);
+  padding: 3px 6px;
+  border-radius: var(--feather-radius-sm);
+  font-size: 12px;
+}
+.feather-link-action:hover, .rune-link-action:hover { background: var(--feather-accent); }
+
+/* ── Callout Blocks ────────────────────────────────────────── */
+
+.feather-callout, .rune-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--feather-radius);
+  margin: 6px 0;
+  border: 1px solid var(--feather-border);
+  background: var(--feather-secondary);
+}
+
+.feather-callout--yellow, .rune-callout--yellow { border-left: 3px solid #eab308; background: #fefce8 !important; }
+.feather-callout--blue,   .rune-callout--blue   { border-left: 3px solid #3b82f6; background: #eff6ff !important; }
+.feather-callout--green,  .rune-callout--green  { border-left: 3px solid #22c55e; background: #f0fdf4 !important; }
+.feather-callout--red,    .rune-callout--red    { border-left: 3px solid #ef4444; background: #fef2f2 !important; }
+.feather-callout--purple, .rune-callout--purple { border-left: 3px solid #a855f7; background: #faf5ff !important; }
+.feather-callout--gray,   .rune-callout--gray   { border-left: 3px solid #71717a; background: #f4f4f5 !important; }
+
+[data-theme="dark"] .feather-callout,
+[data-theme="dark"] .rune-callout {
+  background: #18181b !important;
+}
+
+.feather-callout-icon, .rune-callout-icon {
+  font-size: 16px;
+  line-height: 1.5;
+  cursor: pointer;
+  flex-shrink: 0;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feather-callout-icon svg, .rune-callout-icon svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.75;
+}
+
+.feather-callout-body, .rune-callout-body {
+  flex: 1;
+  min-width: 0;
+  font-size: inherit;
+  line-height: var(--feather-line-height);
+  outline: none;
+}
+
+/* ── Task Lists ────────────────────────────────────────────── */
+
+.feather-task-list, .rune-task-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 4px 0;
+}
+
+.feather-task-item, .rune-task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.feather-task-checkbox, .rune-task-checkbox {
+  font-size: 14px;
+  line-height: 1.6;
+  cursor: pointer;
+  flex-shrink: 0;
+  user-select: none;
+  color: var(--feather-muted-fg);
+  transition: color 100ms;
+}
+
+.feather-task-checkbox:hover, .rune-task-checkbox:hover {
+  color: var(--feather-fg);
+}
+
+.feather-task-item[data-checked="true"] .feather-task-checkbox,
+.rune-task-item[data-checked="true"] .rune-task-checkbox {
+  color: var(--feather-fg);
+}
+
+.feather-task-item[data-checked="true"] .feather-task-content,
+.rune-task-item[data-checked="true"] .rune-task-content {
+  text-decoration: line-through;
+  opacity: 0.45;
+}
+
+.feather-task-content, .rune-task-content {
+  flex: 1;
+  min-width: 0;
+  outline: none;
+}
+
+/* ── Tables ────────────────────────────────────────────────── */
+
+.feather-content table, .rune-content table.rune-table, table.feather-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  border: 1px solid var(--feather-border);
+  border-radius: var(--feather-radius);
+  overflow: hidden;
+}
+
+.feather-table-cell, .rune-table-cell,
+table.feather-table th, table.feather-table td,
+.feather-content table th, .feather-content table td {
+  border: 1px solid var(--feather-border);
+  padding: 8px 12px;
+  font-size: 13.5px;
+  text-align: left;
+}
+
+.feather-content thead th, table.feather-table thead th, thead .rune-table-cell {
+  background: var(--feather-muted);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--feather-fg);
+}
+
+/* ── Tooltips & Attribution ────────────────────────────────── */
+
+.feather-tooltip, .rune-tooltip {
+  position: fixed;
+  z-index: 9999;
+  background: #09090b;
+  color: #fafafa;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: var(--feather-radius-sm);
+  box-shadow: var(--feather-shadow-sm);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.feather-tooltip.is-visible, .rune-tooltip.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.feather-attribution, .rune-attribution {
+  display: block;
+  text-align: right;
+  padding: 4px 8px 2px;
+  font-size: 10.5px;
+  color: var(--feather-muted-fg);
+  text-decoration: none;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+  user-select: none;
+}
+
+.feather-attribution:hover, .rune-attribution:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* ── Toggle & Columns ──────────────────────────────────────── */
+
+.feather-toggle, .rune-toggle {
+  margin: 4px 0;
+}
+
+.feather-toggle-summary, .rune-toggle-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.feather-toggle-arrow, .rune-toggle-arrow {
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+  padding: 2px 4px;
+  color: var(--feather-muted-fg);
+  transition: transform 120ms ease;
+}
+
+.feather-toggle.is-open > .feather-toggle-summary > .feather-toggle-arrow,
+.rune-toggle.is-open > .rune-toggle-summary > .rune-toggle-arrow {
+  transform: rotate(90deg);
+}
+
+.feather-toggle-title, .rune-toggle-title {
+  flex: 1;
+  font-weight: 500;
+}
+
+.feather-toggle-body, .rune-toggle-body {
+  margin-left: 20px;
+}
+
+.feather-toggle:not(.is-open) > .feather-toggle-body,
+.rune-toggle:not(.is-open) > .rune-toggle-body {
+  display: none;
+}
+
+.feather-columns, .rune-columns {
+  display: flex;
+  gap: 16px;
+  margin: 6px 0;
+  align-items: flex-start;
+}
+
+.feather-column, .rune-column {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 6px;
+  border-radius: var(--feather-radius);
+}
+
+/* ── Paper Document Canvas (A4, Letter, Legal, A5, Fluid) ───── */
+
+.feather-paper-workbench {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1.5rem 4rem;
+  min-height: calc(100vh - 50px);
+  background: #f8f8f8;
+  overflow-x: auto;
+}
+
+.feather-paper-sheet {
+  background: #ffffff;
+  color: var(--feather-fg);
+  border: 1px solid #e4e4e7;
+  border-radius: 2px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  margin: 0 auto;
+  transition: width 180ms ease, min-height 180ms ease;
+  box-sizing: border-box;
+}
+
+/* Paper Sizes at 96dpi standard screen / print layout */
+.feather-paper--a4 {
+  width: 794px;
+  height: 1123px;
+}
+
+.feather-paper--letter {
+  width: 816px;
+  height: 1056px;
+}
+
+.feather-paper--legal {
+  width: 816px;
+  height: 1344px;
+}
+
+.feather-paper--a5 {
+  width: 559px;
+  height: 794px;
+}
+
+.feather-paper--fluid {
+  width: 100%;
+  max-width: 860px;
+  min-height: 700px;
+}
+
+/* Landscape orientation */
+.feather-paper--a4.feather-paper--landscape {
+  width: 1123px;
+  height: 794px;
+}
+
+.feather-paper--letter.feather-paper--landscape {
+  width: 1056px;
+  height: 816px;
+}
+
+.feather-paper--legal.feather-paper--landscape {
+  width: 1344px;
+  height: 816px;
+}
+
+.feather-paper--a5.feather-paper--landscape {
+  width: 794px;
+  height: 559px;
+}
+
+.feather-paper-sheet .feather-content,
+.feather-paper-sheet .rune-content {
+  padding: 3rem 3.5rem;
+  border: none;
+  height: 100%;
+  overflow: auto;
+}
+
+.feather-paper-sheet .feather-wrapper,
+.feather-paper-sheet .rune-wrapper {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent;
+}
+
+.feather-paper-sheet .feather-editor.feather-focused .feather-wrapper,
+.feather-paper-sheet .rune-editor.rune-focused .rune-wrapper {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* ── Print Media ───────────────────────────────────────────── */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .app-header,
+  .feather-toolbar,
+  .rune-toolbar,
+  .app-footer,
+  .btn-ghost,
+  .panel-view,
+  .toast {
+    display: none !important;
+  }
+  .feather-paper-workbench {
+    padding: 0 !important;
+    background: transparent !important;
+  }
+  .feather-paper-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+    min-height: auto !important;
+  }
+  .feather-content,
+  .rune-content {
+    padding: 0 !important;
+  }
+}
+

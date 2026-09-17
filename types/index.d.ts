@@ -1,0 +1,335 @@
+// Type definitions for feather-editor
+// Hand-authored to match src/index.js.
+
+export interface EditorHistory {
+  save(): void;
+  saveNow(): void;
+  undo(): boolean;
+  redo(): boolean;
+  destroy?(): void;
+}
+
+export interface EditorOptions {
+  /** Initial HTML content. */
+  content?: string;
+  /** Extensions to register (marks, blocks, formatting, plugins). */
+  extensions?: Extension[];
+  /** `true` for the default toolbar, an items config, or `false` to disable. */
+  toolbar?: boolean | { items?: string[] };
+  bubbleMenu?: boolean | { items?: string[] };
+  slashMenu?: boolean;
+  placeholder?: string;
+  /** Accessible name for the editable region. */
+  ariaLabel?: string;
+  /** Convert Markdown-looking pasted text to formatted content (default true). */
+  pasteMarkdown?: boolean;
+  /** "Made with Rune" credit; set `false` to remove. */
+  attribution?: boolean;
+  /** Fires on user edits, undo/redo, and programmatic setHtml (not on initial content). */
+  onChange?: (html: string, editor: Editor) => void;
+  /** Custom history implementation or factory (e.g. a Yjs adapter). */
+  history?: EditorHistory | ((editor: Editor) => EditorHistory);
+  /** Async image upload hook returning the hosted URL. */
+  uploadImage?: (file: File) => Promise<string>;
+  /** Data source for the @mention extension. */
+  fetchMentions?: (query: string) => Promise<Array<{ id?: string | number; label?: string; name?: string }>>;
+  /** Data source for the #hashtag extension (defaults to create-as-typed). */
+  fetchHashtags?: (query: string) => Promise<Array<{ label?: string; value?: string }>>;
+  onMention?: (item: any, editor: Editor) => void;
+  onHashtag?: (value: string, editor: Editor) => void;
+  [key: string]: unknown;
+}
+
+export interface SuggestionConfig {
+  char: string;
+  allowSpaces?: boolean;
+  startOfLine?: boolean;
+  items: (ctx: { query: string; editor: Editor }) => any[] | Promise<any[]>;
+  render: (item: any) => HTMLElement;
+  command: (ctx: { editor: Editor; item: any; range: Range }) => void;
+}
+
+export type ExtensionType = 'mark' | 'block' | 'formatting' | 'plugin';
+
+export interface ToolbarItem {
+  name: string;
+  title: string;
+  icon: string;
+  action?: string;
+  args?: unknown[];
+  type?: 'panel';
+  dropdown?: Array<{ label: string; action: string; args?: unknown[] }>;
+  isActive?: (editor: Editor) => boolean;
+  renderPanel?: (editor: Editor, close: () => void, item: ToolbarItem) => HTMLElement;
+  [key: string]: unknown;
+}
+
+export interface SlashItem {
+  icon: string;
+  title: string;
+  description?: string;
+  action: (editor: Editor) => void;
+}
+
+export interface InputRule {
+  /** Tested against the text in the caret's text node up to the caret. */
+  find: RegExp;
+  /** Replace the matched text (string or computed from the match). */
+  replace?: string | ((match: RegExpExecArray) => string);
+  /** Custom DOM surgery on the matched range (e.g. wrap in a mark). */
+  handler?: (ctx: { editor: Editor; match: RegExpExecArray; range: Range }) => void;
+}
+
+export interface PasteRule {
+  /** Matched against text nodes of pasted, sanitized HTML. */
+  find: RegExp;
+  /** Returns replacement HTML for each match. */
+  replace: (...args: any[]) => string;
+}
+
+export interface Extension {
+  name: string;
+  type: ExtensionType;
+  /** Optional manifest fields (extension registry). */
+  version?: string;
+  kind?: string;
+  dependsOn?: string[];
+  conflictsWith?: string[];
+  lazy?: () => Promise<{ default?: Extension } | Extension>;
+  tag?: string | string[];
+  match?: (el: Element) => boolean;
+  hasMark?: (el: Element) => boolean;
+  execCommand?: string;
+  toggleCommand?: string;
+  commands?: (editor: Editor) => Record<string, (...args: any[]) => any>;
+  keymap?: Record<string, (editor: Editor) => void>;
+  inputRules?: InputRule[];
+  pasteRules?: PasteRule[];
+  suggestion?: SuggestionConfig;
+  init?: (editor: Editor) => void;
+  toolbarItem?: ToolbarItem;
+  slashItem?: SlashItem;
+  [key: string]: unknown;
+}
+
+export interface SavedRange {
+  startContainer: Node;
+  startOffset: number;
+  endContainer: Node;
+  endOffset: number;
+}
+
+export class EventBus {
+  on(event: string, fn: (...args: any[]) => void): this;
+  once(event: string, fn: (...args: any[]) => void): this;
+  off(event: string, fn: (...args: any[]) => void): this;
+  emit(event: string, ...args: any[]): this;
+  removeAllListeners(event?: string): this;
+}
+
+/** Chainable command builder; unknown methods are treated as command names. */
+export interface CommandChain {
+  run(): boolean;
+  [command: string]: (...args: any[]) => CommandChain;
+}
+
+export class Selection {
+  constructor(editor: Editor);
+  readonly native: globalThis.Selection | null;
+  readonly range: Range | null;
+  readonly isCollapsed: boolean;
+  save(): SavedRange | null;
+  restore(saved: SavedRange | null): void;
+  getBlock(): HTMLElement | null;
+  getFormattingTarget(): HTMLElement | null;
+  getSelectedBlocks(): HTMLElement[];
+  setAtEnd(el: Element): void;
+  setAtStart(el: Element): void;
+  selectAll(el: Element): void;
+  isAtBlockStart(): boolean;
+  isAtBlockEnd(): boolean;
+}
+
+export class History implements EditorHistory {
+  constructor(editor: Editor, opts?: { maxSize?: number; maxBytes?: number; debounce?: number });
+  save(): void;
+  saveNow(): void;
+  undo(): boolean;
+  redo(): boolean;
+  readonly canUndo: boolean;
+  readonly canRedo: boolean;
+  destroy(): void;
+}
+
+export interface DecorationPoint { path: number[]; offset: number; }
+export interface DecorationSpec {
+  from: DecorationPoint;
+  to: DecorationPoint;
+  class?: string;
+  attrs?: Record<string, string>;
+  onClick?: (id: string, event: MouseEvent) => void;
+  type?: string;
+}
+
+/** Non-destructive overlay layer (highlights, comment ranges, cursors…). */
+export class Decorations {
+  add(spec: DecorationSpec): string | null;
+  remove(id: string): void;
+  clear(type?: string): void;
+  fromCurrentSelection(cls: string, opts?: Partial<DecorationSpec>): string | null;
+  destroy(): void;
+}
+
+export class Schema {
+  register(ext: Extension): void;
+  getBlock(name: string): Extension | undefined;
+  getMark(name: string): Extension | undefined;
+  getToolbarItems(): ToolbarItem[];
+  getSlashItems(): SlashItem[];
+  getKeymap(): Record<string, (editor: Editor) => void>;
+  readonly plugins: Extension[];
+}
+
+export class Editor {
+  constructor(target: string | Element, options?: EditorOptions);
+
+  readonly content: HTMLElement;
+  readonly wrapper: HTMLElement;
+  readonly target: HTMLElement;
+  readonly events: EventBus;
+  readonly schema: Schema;
+  readonly selection: Selection;
+  readonly decorations: Decorations;
+  history: EditorHistory;
+  options: EditorOptions;
+
+  /** Run a registered command by name. */
+  cmd(name: string, ...args: any[]): any;
+  /** Begin a command chain: `editor.chain().toggleBold().run()`. */
+  chain(): CommandChain;
+  /** Whether a mark/block is active at the caret. */
+  isActive(type: string, attrs?: Record<string, unknown>): boolean;
+
+  getHtml(): string;
+  setHtml(html: string): void;
+  getText(): string;
+  getMarkdown(): string;
+  setMarkdown(md: string): void;
+  insertMarkdown(md: string): void;
+  getJSON(): RuneDoc;
+  setJSON(doc: RuneDoc): void;
+  print(): void;
+  isEmpty(): boolean;
+
+  focus(): this;
+  blur(): this;
+  enable(): this;
+  disable(): this;
+
+  destroy(): void;
+}
+
+export { Editor as FeatherEditor, Editor as RuneEditor };
+export const icons: Record<string, string>;
+
+export interface FeatherConfig {
+  blocks?: Record<string, boolean>;
+  marks?: Record<string, boolean>;
+  formatting?: Record<string, boolean>;
+  plugins?: Record<string, boolean>;
+  toolbar?: boolean | { enabled?: boolean; items?: string[] };
+  bubbleMenu?: boolean | { enabled?: boolean; items?: string[] };
+  slashMenu?: boolean | { enabled?: boolean };
+  editor?: Partial<EditorOptions>;
+  history?: { enabled?: boolean; maxSteps?: number };
+}
+
+export type RuneConfig = FeatherConfig;
+
+export function createFromConfig(
+  target: string | Element,
+  config: FeatherConfig,
+  overrides?: Partial<EditorOptions>,
+): Editor;
+
+export const DEFAULT_BOILERPLATE_CONTENT: string;
+
+export function createFullEditor(
+  target: string | Element,
+  options?: Partial<EditorOptions> & { config?: Partial<FeatherConfig> },
+): Editor;
+
+// ── Extensions ────────────────────────────────────────────────
+export const StarterKit: Extension[];
+
+export const Bold: Extension;
+export const Italic: Extension;
+export const Underline: Extension;
+export const Strike: Extension;
+export const Code: Extension;
+export const Link: Extension;
+export const Superscript: Extension;
+export const Subscript: Extension;
+export const FontSize: Extension;
+export const FontFamily: Extension;
+export const TextColor: Extension;
+export const TextBackground: Extension;
+export const Highlight: Extension;
+export const Mention: Extension;
+export const Hashtag: Extension;
+export const Emoji: Extension;
+export const Paragraph: Extension;
+export const Heading: Extension;
+export const BulletList: Extension;
+export const OrderedList: Extension;
+export const Blockquote: Extension;
+export const CodeBlock: Extension;
+export const HorizontalRule: Extension;
+export const Callout: Extension;
+export const TaskList: Extension;
+export const VideoEmbed: Extension;
+export const Image: Extension;
+export const Table: Extension;
+export const Toggle: Extension;
+export const Columns: Extension;
+export const TextAlign: Extension;
+export const LineHeight: Extension;
+export const Indent: Extension;
+export const Outdent: Extension;
+export const MarkdownShortcuts: Extension;
+export const FindReplace: Extension;
+export const DragReorder: Extension;
+export const FormatPainter: Extension;
+export const SmartTypography: Extension;
+export const InlineMarkdown: Extension;
+
+// ── Utilities ─────────────────────────────────────────────────
+export function el(tag: string, attrs?: Record<string, any>, ...children: Array<Node | string>): HTMLElement;
+export function closest(node: Node | null, selector: string): Element | null;
+export function isInside(node: Node | null, container: Node): boolean;
+export function getBlockElement(node: Node | null, root: Element): HTMLElement | null;
+export function removeAllChildren(el: Element): void;
+export function getCaretRect(): DOMRect | null;
+export function getSelectionRect(): DOMRect | null;
+export function htmlToMarkdown(html: string): string;
+export function markdownToHtml(md: string): string;
+
+export interface RuneMark { type: string; attrs?: Record<string, unknown>; }
+export interface RuneNode {
+  type: string;
+  attrs?: Record<string, unknown>;
+  content?: RuneNode[];
+  text?: string;
+  marks?: RuneMark[];
+  html?: string;
+}
+export interface RuneDoc { type: 'doc'; content: RuneNode[]; }
+
+/** Parse editor HTML into a portable JSON document (needs a DOM). */
+export function htmlToJson(html: string): RuneDoc;
+/** Render a JSON document to an HTML string (no DOM — server-safe). */
+export function jsonToHtml(doc: RuneDoc): string;
+export function uid(): string;
+export function sanitize(html: string): string;
+export function sanitizeContent(html: string): string;
+export function normalizeHtml(html: string): string;

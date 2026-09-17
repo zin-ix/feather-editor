@@ -1,0 +1,1046 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { Editor } from '../src/core/Editor.js';
+import { Paragraph } from '../src/extensions/blocks/Paragraph.js';
+import { Heading } from '../src/extensions/blocks/Heading.js';
+import { Bold } from '../src/extensions/marks/Bold.js';
+import { Italic } from '../src/extensions/marks/Italic.js';
+import { Blockquote } from '../src/extensions/blocks/Blockquote.js';
+import { CodeBlock } from '../src/extensions/blocks/CodeBlock.js';
+import { BulletList } from '../src/extensions/blocks/BulletList.js';
+import { sanitize, sanitizeContent } from '../src/utils/html.js';
+import { Image } from '../src/extensions/blocks/Image.js';
+import { Link } from '../src/extensions/marks/Link.js';
+import { Table } from '../src/extensions/blocks/Table.js';
+import { Callout } from '../src/extensions/blocks/Callout.js';
+import { VideoEmbed } from '../src/extensions/blocks/VideoEmbed.js';
+import { FormatPainter } from '../src/extensions/plugins/FormatPainter.js';
+
+describe('Editor', () => {
+  let target;
+  let editor;
+
+  beforeEach(() => {
+    target = document.createElement('div');
+    document.body.appendChild(target);
+  });
+
+  afterEach(() => {
+    editor?.destroy();
+    target.remove();
+  });
+
+  function create(opts = {}) {
+    editor = new Editor(target, {
+      extensions: [Paragraph, Heading, Bold, Italic, Blockquote, CodeBlock],
+      toolbar: false,
+      bubbleMenu: false,
+      slashMenu: false,
+      ...opts,
+    });
+    return editor;
+  }
+
+  describe('mounting', () => {
+    it('creates wrapper and content elements', () => {
+      create();
+      expect(target.querySelector('.rune-wrapper')).toBeTruthy();
+      expect(target.querySelector('.rune-content')).toBeTruthy();
+    });
+
+    it('adds rune-editor class to target', () => {
+      create();
+      expect(target.classList.contains('rune-editor')).toBe(true);
+    });
+
+    it('exposes an accessible name and aria-placeholder on the editable region (#57)', () => {
+      create({ placeholder: 'Type here', ariaLabel: 'My editor' });
+      const content = target.querySelector('.rune-content');
+      expect(content.getAttribute('role')).toBe('textbox');
+      expect(content.getAttribute('aria-label')).toBe('My editor');
+      expect(content.getAttribute('aria-placeholder')).toBe('Type here');
+    });
+
+    it('does not render attribution badge by default', () => {
+      create();
+      expect(target.querySelector('.rune-attribution')).toBeNull();
+    });
+
+    it('throws on invalid target', () => {
+      expect(() => new Editor('#nonexistent')).toThrow('Target element not found');
+    });
+
+    it('sets initial content', () => {
+      create({ content: '<p>Hello</p>' });
+      expect(editor.getHtml()).toContain('Hello');
+    });
+
+    it('sets placeholder', () => {
+      create({ placeholder: 'Type here...' });
+      expect(editor.content.dataset.placeholder).toBe('Type here...');
+    });
+  });
+
+  describe('getHtml / setHtml', () => {
+    it('round-trips HTML', () => {
+      create({ content: '<p>test content</p>' });
+      expect(editor.getHtml()).toContain('test content');
+    });
+
+    it('setHtml updates content', () => {
+      create();
+      editor.setHtml('<p>new content</p>');
+      expect(editor.getHtml()).toContain('new content');
+    });
+
+    it('normalizes bare text into paragraphs', () => {
+      create({ content: 'bare text' });
+      expect(editor.getHtml()).toContain('<p>');
+    });
+  });
+
+  describe('getText', () => {
+    it('returns plain text', () => {
+      create({ content: '<p>Hello <strong>world</strong></p>' });
+      expect(editor.getText().trim()).toBe('Hello world');
+    });
+  });
+
+  describe('isEmpty', () => {
+    it('returns true for empty editor', () => {
+      create({ content: '' });
+      expect(editor.isEmpty()).toBe(true);
+    });
+
+    it('returns false when editor has content', () => {
+      create({ content: '<p>text</p>' });
+      expect(editor.isEmpty()).toBe(false);
+    });
+  });
+
+  describe('enable / disable', () => {
+    it('disable sets contenteditable to false', () => {
+      create();
+      editor.disable();
+      expect(editor.content.contentEditable).toBe('false');
+      expect(target.classList.contains('rune-disabled')).toBe(true);
+    });
+
+    it('enable restores contenteditable', () => {
+      create();
+      editor.disable();
+      editor.enable();
+      expect(editor.content.contentEditable).toBe('true');
+      expect(target.classList.contains('rune-disabled')).toBe(false);
+    });
+
+    it('methods are chainable', () => {
+      create();
+      expect(editor.enable()).toBe(editor);
+      expect(editor.disable()).toBe(editor);
+    });
+  });
+
+  describe('commands', () => {
+    it('cmd executes registered commands', () => {
+      create();
+      // setHeading is registered by the Heading extension
+      expect(editor.commands.has('setHeading')).toBe(true);
+    });
+
+    it('cmd warns on unknown command', () => {
+      create();
+      const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      editor.cmd('nonexistent');
+      expect(spy).toHaveBeenCalledWith(expect.stringContaining('Unknown command'));
+      spy.mockRestore();
+    });
+
+    it('auto-registers toggle commands from marks with execCommand', () => {
+      create();
+      expect(editor.commands.has('toggleBold')).toBe(true);
+      expect(editor.commands.has('toggleItalic')).toBe(true);
+    });
+  });
+
+  describe('extension registration', () => {
+    it('registers blocks in schema', () => {
+      create();
+      expect(editor.schema.getBlock('paragraph')).toBeTruthy();
+      expect(editor.schema.getBlock('heading')).toBeTruthy();
+    });
+
+    it('registers marks in schema', () => {
+      create();
+      expect(editor.schema.getMark('bold')).toBeTruthy();
+      expect(editor.schema.getMark('italic')).toBeTruthy();
+    });
+  });
+
+  describe('events', () => {
+    it('onChange callback fires on _notifyChange', () => {
+      const onChange = vi.fn();
+      create({ onChange, content: '<p>initial</p>' });
+      editor._notifyChange();
+      expect(onChange).toHaveBeenCalled();
+    });
+
+    it('does not fire onChange during construction with initial content (#26 regression)', () => {
+      const onChange = vi.fn();
+      create({ onChange, content: '<p>seed</p>' });
+      expect(onChange).not.toHaveBeenCalled();   // initial content is not a change
+      editor.setHtml('<p>after</p>');            // but a later change does fire it
+      expect(onChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('emits change event', () => {
+      const fn = vi.fn();
+      create();
+      editor.events.on('change', fn);
+      editor.setHtml('<p>new</p>');
+      expect(fn).toHaveBeenCalled();
+    });
+  });
+
+  describe('live region (#63)', () => {
+    it('renders a visually-hidden polite live region', () => {
+      create();
+      const live = target.querySelector('.rune-live-region');
+      expect(live).toBeTruthy();
+      expect(live.getAttribute('aria-live')).toBe('polite');
+    });
+
+    it('announce() writes to the live region', () => {
+      create();
+      editor.announce('Hello AT');
+      expect(target.querySelector('.rune-live-region').textContent).toBe('Hello AT');
+    });
+
+    it('announces labeled commands', () => {
+      create();
+      editor.cmd('clearFormat');
+      expect(target.querySelector('.rune-live-region').textContent).toBe('Formatting cleared');
+    });
+  });
+
+  describe('destroy', () => {
+    it('emits destroy event', () => {
+      create();
+      const fn = vi.fn();
+      editor.events.on('destroy', fn);
+      editor.destroy();
+      expect(fn).toHaveBeenCalledOnce();
+      editor = null; // prevent double destroy in afterEach
+    });
+
+    it('removes DOM elements', () => {
+      create();
+      editor.destroy();
+      expect(target.querySelector('.rune-wrapper')).toBeNull();
+      expect(target.classList.contains('rune-editor')).toBe(false);
+      editor = null;
+    });
+
+    it('disposes the history on destroy', () => {
+      create();
+      const spy = vi.spyOn(editor.history, 'destroy');
+      editor.destroy();
+      expect(spy).toHaveBeenCalled();
+      editor = null;
+    });
+  });
+
+  describe('pluggable history (EditorHistory seam)', () => {
+    it('accepts an injected history instance via options', () => {
+      const custom = { save: vi.fn(), saveNow: vi.fn(), undo: vi.fn(), redo: vi.fn(), destroy: vi.fn() };
+      editor = new Editor(target, { extensions: [Paragraph], toolbar: false, bubbleMenu: false, slashMenu: false, history: custom });
+      expect(editor.history).toBe(custom);
+    });
+
+    it('accepts a history factory via options', () => {
+      const custom = { save: vi.fn(), saveNow: vi.fn(), undo: vi.fn(), redo: vi.fn() };
+      const factory = vi.fn(() => custom);
+      editor = new Editor(target, { extensions: [Paragraph], toolbar: false, bubbleMenu: false, slashMenu: false, history: factory });
+      expect(factory).toHaveBeenCalledWith(editor);
+      expect(editor.history).toBe(custom);
+    });
+
+    it('routes undo/redo commands through the active history', () => {
+      const custom = { save: vi.fn(), saveNow: vi.fn(), undo: vi.fn(), redo: vi.fn() };
+      create();
+      editor.replaceHistory(custom);
+      editor.cmd('undo');
+      editor.cmd('redo');
+      expect(custom.undo).toHaveBeenCalled();
+      expect(custom.redo).toHaveBeenCalled();
+    });
+
+    it('replaceHistory disposes the previous history', () => {
+      create();
+      const old = editor.history;
+      const spy = vi.spyOn(old, 'destroy');
+      editor.replaceHistory({ save() {}, saveNow() {}, undo() {}, redo() {} });
+      expect(spy).toHaveBeenCalled();
+    });
+  });
+
+  describe('undo/redo (command-flow regression)', () => {
+    // Commands snapshot their PRE-mutation state then mutate the DOM, and the
+    // mutation (being programmatic) fires no input event — so the result is
+    // never pushed. undo() must flush the live state before stepping back.
+    it('undoes a command-style change snapshotted only before the mutation', () => {
+      create({ content: '<p>hello</p>' });
+      editor.history.saveNow();                       // boundary (de-dupes)
+      editor.content.innerHTML = '<h1>hello</h1>';    // mutate, no input event
+      expect(editor.history.undo()).toBe(true);
+      expect(editor.content.innerHTML).toContain('<p>hello</p>');
+    });
+
+    it('makes the FIRST command on a fresh document undoable', () => {
+      create({ content: '<p>only</p>' });
+      // No prior edits: the pre-mutation snapshot equals the initial one and is
+      // de-duped, so the result is the only unsaved state.
+      editor.history.saveNow();
+      editor.content.innerHTML = '<blockquote>only</blockquote>';
+      expect(editor.history.undo()).toBe(true);
+      expect(editor.content.innerHTML).toContain('<p>only</p>');
+    });
+
+    it('redo restores the command result after undo', () => {
+      create({ content: '<p>hello</p>' });
+      editor.history.saveNow();
+      editor.content.innerHTML = '<h1>hello</h1>';
+      editor.history.undo();
+      expect(editor.history.redo()).toBe(true);
+      expect(editor.content.innerHTML).toContain('<h1>hello</h1>');
+    });
+
+    it('undoes a real setBlock command back to a paragraph', () => {
+      create({ content: '<p>hello</p>' });
+      const p = editor.content.querySelector('p');
+      const range = document.createRange();
+      range.selectNodeContents(p);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+
+      editor.cmd('setBlock', 'heading');
+      expect(editor.content.querySelector('h1')).toBeTruthy();
+
+      editor.history.undo();
+      expect(editor.content.querySelector('h1')).toBeFalsy();
+      expect(editor.content.querySelector('p')).toBeTruthy();
+    });
+
+    it('fires onChange on undo and redo (#26)', () => {
+      const onChange = vi.fn();
+      create({ content: '<p>hello</p>', onChange });
+      editor.history.saveNow();
+      editor.content.innerHTML = '<h1>hello</h1>';
+
+      onChange.mockClear();
+      editor.history.undo();
+      expect(onChange).toHaveBeenCalled();
+
+      onChange.mockClear();
+      editor.history.redo();
+      expect(onChange).toHaveBeenCalled();
+    });
+
+    it('fires onChange on setHtml (#26)', () => {
+      const onChange = vi.fn();
+      create({ content: '<p>hello</p>', onChange });
+      onChange.mockClear();
+      editor.setHtml('<p>replaced</p>');
+      expect(onChange).toHaveBeenCalled();
+    });
+  });
+
+  describe('FormatPainter lifecycle (#53)', () => {
+    it('unbinds the armed mouseup listener and class when the editor is destroyed', () => {
+      document.queryCommandState = () => false;
+      editor = new Editor(target, {
+        extensions: [Paragraph, FormatPainter],
+        toolbar: false, bubbleMenu: false, slashMenu: false,
+        content: '<p>hi</p>',
+      });
+      const p = editor.content.querySelector('p');
+      const range = document.createRange();
+      range.selectNodeContents(p);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+
+      editor.cmd('activateFormatPainter');
+      expect(editor.content.classList.contains('rune-painter-active')).toBe(true);
+
+      const removeSpy = vi.spyOn(editor.content, 'removeEventListener');
+      editor.destroy();
+      expect(removeSpy).toHaveBeenCalledWith('mouseup', expect.any(Function));
+      expect(editor.content.classList.contains('rune-painter-active')).toBe(false);
+      editor = null; // already destroyed
+    });
+  });
+
+  describe('async UI init teardown (#49)', () => {
+    it('does not mount toolbar/menus after destroy() runs before the dynamic import resolves', async () => {
+      editor = new Editor(target, {
+        extensions: [Paragraph],
+        toolbar: true, bubbleMenu: true, slashMenu: true,
+      });
+      editor.destroy();
+      // Let the pending dynamic imports settle.
+      await new Promise((r) => setTimeout(r, 20));
+      expect(editor.toolbar).toBeUndefined();
+      expect(editor.bubbleMenu).toBeUndefined();
+      expect(editor.slashMenu).toBeUndefined();
+      editor = null; // already destroyed; skip afterEach double-destroy
+    });
+  });
+
+  describe('toggleMark (#87)', () => {
+    function selectRange(node, start, end) {
+      const r = document.createRange();
+      r.setStart(node, start); r.setEnd(node, end);
+      const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    }
+
+    it('wraps the selection in an element mark and toggles it off', () => {
+      create({ content: '<p>hello world</p>' });
+      const t = editor.content.querySelector('p').firstChild;
+      selectRange(t, 0, 5);                       // "hello"
+      editor.cmd('toggleMark', 'mark', { class: 'rune-hl-yellow' });
+      const mark = editor.content.querySelector('mark.rune-hl-yellow');
+      expect(mark).toBeTruthy();
+      expect(mark.textContent).toBe('hello');
+
+      const r = document.createRange(); r.selectNodeContents(mark);
+      const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      editor.cmd('toggleMark', 'mark', { class: 'rune-hl-yellow' });
+      expect(editor.content.querySelector('mark')).toBeFalsy();   // toggled off
+    });
+
+    it('recolours when toggled with a different class', () => {
+      create({ content: '<p>hi</p>' });
+      const t = editor.content.querySelector('p').firstChild;
+      selectRange(t, 0, 2);
+      editor.cmd('toggleMark', 'mark', { class: 'rune-hl-yellow' });
+      const mark = editor.content.querySelector('mark');
+      const r = document.createRange(); r.selectNodeContents(mark);
+      const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      editor.cmd('toggleMark', 'mark', { class: 'rune-hl-green' });
+      expect(editor.content.querySelector('mark').className).toBe('rune-hl-green');
+    });
+  });
+
+  describe('markdown import (#85 / #93)', () => {
+    it('setMarkdown replaces content with parsed HTML', () => {
+      create({ content: '<p>old</p>' });
+      editor.setMarkdown('# Title\n\n- a\n- b');
+      expect(editor.content.querySelector('h1')?.textContent).toBe('Title');
+      expect(editor.content.querySelectorAll('ul li').length).toBe(2);
+    });
+
+    function paste(plain, html = '') {
+      let inserted = null;
+      const orig = document.execCommand;
+      document.execCommand = (cmd, ui, val) => { if (cmd === 'insertHTML') inserted = val; return true; };
+      const e = new Event('paste', { bubbles: true, cancelable: true });
+      e.clipboardData = { getData: (t) => (t === 'text/plain' ? plain : html) };
+      editor.content.dispatchEvent(e);
+      document.execCommand = orig;
+      return inserted;
+    }
+
+    it('converts Markdown-looking pasted text (#93)', () => {
+      create({ content: '<p></p>' });
+      const out = paste('## Hi\n\n- a\n- b');
+      expect(out).toContain('<h2>Hi</h2>');
+      expect(out).toContain('<ul><li>a</li><li>b</li></ul>');
+    });
+
+    it('does not convert plain prose on paste', () => {
+      create({ content: '<p></p>' });
+      const out = paste('just some plain text, nothing special');
+      expect(out).toBe('just some plain text, nothing special');
+    });
+
+    it('respects pasteMarkdown:false', () => {
+      create({ content: '<p></p>', pasteMarkdown: false });
+      const out = paste('## Hi');
+      expect(out).toBe('## Hi');   // left as text
+    });
+
+    it('converts a Markdown document even when the clipboard also has HTML (#93)', () => {
+      create({ content: '<p></p>' });
+      const out = paste('# Title\n\n- a\n- b', '<pre>rendered display</pre>');
+      expect(out).toContain('<h1>Title</h1>');
+      expect(out).toContain('<ul><li>a</li><li>b</li></ul>');
+    });
+
+    it('keeps rich HTML when plain text only has incidental markdown chars', () => {
+      create({ content: '<p></p>' });
+      const out = paste('See **important**', '<p>See <strong>important</strong></p>');
+      expect(out).toContain('<strong>important</strong>');   // not overridden
+    });
+
+    it('re-sanitizes paste-rule output so a rule cannot inject unsanitized HTML (#106)', () => {
+      // A consumer-registered paste rule that emits raw markup. It runs AFTER the
+      // sanitizer, so without a second sanitize pass this event handler would land
+      // straight in the document.
+      const Evil = { name: 'evil', type: 'plugin',
+        pasteRules: [{ find: /TRIGGER/g, replace: () => '<img src=x onerror="alert(1)">' }] };
+      create({ content: '<p></p>', extensions: [Paragraph, Evil] });
+      const out = paste('TRIGGER');
+      expect(out).toContain('<img');          // the safe tag survives
+      expect(out).not.toContain('onerror');   // the injected handler is stripped
+    });
+  });
+
+  // #122: native contenteditable drop inserts dragged text/html verbatim, so it
+  // must go through the same sanitize pipeline as paste — otherwise an <img
+  // onerror> dragged from a hostile page executes in the host origin.
+  describe('drop sanitization (#122)', () => {
+    function drop(html, plain = '') {
+      let inserted = null;
+      const orig = document.execCommand;
+      document.execCommand = (cmd, ui, val) => { if (cmd === 'insertHTML') inserted = val; return true; };
+      const e = new Event('drop', { bubbles: true, cancelable: true });
+      e.dataTransfer = { getData: (t) => (t === 'text/html' ? html : plain) };
+      editor.content.dispatchEvent(e);
+      document.execCommand = orig;
+      return { inserted, prevented: e.defaultPrevented };
+    }
+
+    it('strips event handlers from dropped HTML', () => {
+      create({ content: '<p></p>' });
+      const { inserted, prevented } = drop('<img src=x onerror="alert(1)"><b>ok</b>');
+      expect(prevented).toBe(true);            // default insert suppressed
+      expect(inserted).not.toBeNull();         // routed through our handler
+      expect(inserted).toContain('<b>ok</b>'); // safe markup survives
+      expect(inserted).not.toContain('onerror');
+    });
+
+    it('drops a script tag from dropped HTML', () => {
+      create({ content: '<p></p>' });
+      const { inserted } = drop('<p>hi</p><script>alert(1)</script>');
+      expect(inserted).toContain('<p>hi</p>');
+      expect(inserted).not.toContain('<script');
+    });
+
+    it('falls back to plain text when no HTML is present', () => {
+      create({ content: '<p></p>' });
+      const { inserted } = drop('', 'just text');
+      expect(inserted).toBe('just text');
+    });
+
+    // A drag that started INSIDE this editor is a native move of already-safe
+    // content — let the browser relocate it (which deletes the source) instead
+    // of inserting a sanitized duplicate. Only external drops get sanitized.
+    it('lets a native intra-editor drag move content instead of duplicating it', () => {
+      create({ content: '<p>hello</p>' });
+      editor.content.dispatchEvent(new Event('dragstart', { bubbles: true }));
+      const { inserted, prevented } = drop('<p>hello</p>');
+      expect(inserted).toBeNull();     // no insertHTML — native move left to the browser
+      expect(prevented).toBe(false);   // default (native move) not cancelled
+    });
+
+    it('still sanitizes an external drop after an internal drag ended', () => {
+      create({ content: '<p></p>' });
+      // internal drag lifecycle completes...
+      editor.content.dispatchEvent(new Event('dragstart', { bubbles: true }));
+      editor.content.dispatchEvent(new Event('dragend', { bubbles: true }));
+      // ...then a genuinely external drop must still be sanitized.
+      const { inserted } = drop('<img src=x onerror="alert(1)">');
+      expect(inserted).not.toBeNull();
+      expect(inserted).not.toContain('onerror');
+    });
+  });
+
+  describe('JSON document (#83)', () => {
+    it('getJSON returns a portable doc and setJSON restores it', () => {
+      create({ content: '<h2>Hi</h2><p><strong>bold</strong> text</p>' });
+      const json = editor.getJSON();
+      expect(json.type).toBe('doc');
+      expect(json.content[0]).toEqual({ type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Hi' }] });
+
+      editor.setHtml('<p>cleared</p>');
+      editor.setJSON(json);
+      expect(editor.content.querySelector('h2')?.textContent).toBe('Hi');
+      expect(editor.content.querySelector('strong')?.textContent).toBe('bold');
+    });
+  });
+
+  describe('decorations (#82)', () => {
+    it('adds/clears decorations without polluting getHtml', () => {
+      create({ content: '<p>hello world</p>' });
+      const t = editor.content.querySelector('p').firstChild;
+      const r = document.createRange(); r.setStart(t, 0); r.setEnd(t, 5);
+      const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+
+      const id = editor.decorations.fromCurrentSelection('rune-hl-test', { type: 'comment' });
+      expect(id).toBeTruthy();
+      expect(editor.decorations._items.size).toBe(1);
+      expect(editor.wrapper.querySelector('.rune-decoration-layer')).toBeTruthy();
+
+      // The editable HTML is untouched by decorations.
+      expect(editor.getHtml()).toBe('<p>hello world</p>');
+
+      editor.decorations.clear('comment');
+      expect(editor.decorations._items.size).toBe(0);
+
+      const id2 = editor.decorations.add({
+        from: editor.decorations._point(t, 0),
+        to: editor.decorations._point(t, 5),
+        class: 'x',
+      });
+      expect(editor.decorations._items.has(id2)).toBe(true);
+      editor.decorations.remove(id2);
+      expect(editor.decorations._items.size).toBe(0);
+    });
+  });
+
+  describe('extension registry (#92)', () => {
+    it('registers extensions in dependsOn order', () => {
+      const order = [];
+      const A = { name: 'rega', type: 'plugin', init: () => order.push('a') };
+      const B = { name: 'regb', type: 'plugin', dependsOn: ['rega'], init: () => order.push('b') };
+      editor = new Editor(target, { extensions: [B, A, Paragraph], toolbar: false, bubbleMenu: false, slashMenu: false });
+      expect(order.indexOf('a')).toBeLessThan(order.indexOf('b'));
+    });
+
+    it('throws on a missing dependency', () => {
+      expect(() => new Editor(target, { extensions: [{ name: 'x', type: 'plugin', dependsOn: ['nope'] }], toolbar: false, bubbleMenu: false, slashMenu: false }))
+        .toThrow(/depends on missing/);
+    });
+
+    it('editor.use() registers an extension at runtime', () => {
+      create();
+      let ran = false;
+      editor.use({ name: 'rt', type: 'plugin', commands: () => ({ rtCmd: () => { ran = true; } }) });
+      editor.cmd('rtCmd');
+      expect(ran).toBe(true);
+    });
+
+    it('editor.use() supports a lazy loader', async () => {
+      create();
+      const real = { name: 'lz', type: 'plugin', commands: () => ({ lzCmd: () => 'ok' }) };
+      await editor.use({ name: 'lz', lazy: () => Promise.resolve({ default: real }) });
+      expect(editor.cmd('lzCmd')).toBe('ok');
+    });
+  });
+
+  describe('mark active state', () => {
+    it('isActive(bold) reflects the <strong> mark, not heading font-weight', () => {
+      create({ content: '<h1>Heading</h1><p><strong>b</strong> plain</p>' });
+      const caretIn = (sel) => {
+        const r = document.createRange(); r.selectNodeContents(editor.content.querySelector(sel)); r.collapse(true);
+        const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      };
+      caretIn('h1');
+      expect(editor.isActive('bold')).toBe(false);   // headings are weight 600, not bold marks
+      caretIn('strong');
+      expect(editor.isActive('bold')).toBe(true);
+    });
+  });
+
+  describe('link UI', () => {
+    function selectContents(node) {
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    it('openLinkEditor shows an inline input popover instead of a native prompt', () => {
+      create({ extensions: [Paragraph, Link], content: '<p>hello</p>' });
+      selectContents(editor.content.querySelector('p'));
+
+      editor.cmd('openLinkEditor');
+      const pop = document.querySelector('.rune-link-popover');
+      expect(pop).toBeTruthy();
+      expect(pop.style.display).not.toBe('none');
+      expect(pop.querySelector('input.rune-link-input')).toBeTruthy();
+    });
+
+    it('clicking an existing link shows an Open/Edit/Remove popover', () => {
+      create({ extensions: [Paragraph, Link], content: '<p><a href="https://example.com">site</a></p>' });
+      const a = editor.content.querySelector('a');
+      a.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+      const pop = document.querySelector('.rune-link-popover');
+      expect(pop.style.display).toBe('flex');
+      const open = pop.querySelector('a.rune-link-open');
+      expect(open?.getAttribute('href')).toBe('https://example.com');
+      expect(open.getAttribute('target')).toBe('_blank');
+      expect([...pop.querySelectorAll('.rune-link-action')].map(b => b.textContent)).toEqual(['Edit', 'Remove']);
+    });
+
+    it('Edit in the preview popover switches to an input prefilled with the href', () => {
+      create({ extensions: [Paragraph, Link], content: '<p><a href="https://example.com">site</a></p>' });
+      const a = editor.content.querySelector('a');
+      a.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+      const editBtn = [...document.querySelectorAll('.rune-link-action')].find(b => b.textContent === 'Edit');
+      editBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+      const input = document.querySelector('.rune-link-input');
+      expect(input).toBeTruthy();
+      expect(input.value).toBe('https://example.com');
+    });
+
+    it('removes the popover element when the editor is destroyed', () => {
+      create({ extensions: [Paragraph, Link], content: '<p>hello</p>' });
+      expect(document.querySelector('.rune-link-popover')).toBeTruthy();
+      editor.destroy();
+      editor = null;
+      expect(document.querySelector('.rune-link-popover')).toBeNull();
+    });
+  });
+
+  describe('table', () => {
+    function placeCaret(node) {
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      range.collapse(true);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    it('insertTable honors the requested column and row counts', () => {
+      create({ extensions: [Paragraph, Table], content: '<p>x</p>' });
+      editor.cmd('insertTable', 2, 5);
+      expect(editor.content.querySelectorAll('table.rune-table thead th').length).toBe(5);
+      expect(editor.content.querySelectorAll('table.rune-table tr').length).toBe(2);
+    });
+
+    it('the size picker inserts a table of the picked dimensions', () => {
+      create({ extensions: [Paragraph, Table], content: '<p>x</p>' });
+      expect(Table.toolbarItem.type).toBe('panel');
+      const panel = Table.toolbarItem.renderPanel(editor, () => {});
+      document.body.appendChild(panel);
+      // data-r=1, data-c=4 → 5 columns × 2 rows
+      panel.querySelector('.rune-table-grid-cell[data-r="1"][data-c="4"]')
+        .dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      expect(editor.content.querySelectorAll('table.rune-table thead th').length).toBe(5);
+      expect(editor.content.querySelectorAll('table.rune-table tr').length).toBe(2);
+      panel.remove();
+    });
+
+    it('creates floating add controls and removes them on destroy', () => {
+      create({ extensions: [Paragraph, Table], content: '<p>x</p>' });
+      expect(document.querySelectorAll('.rune-table-add-btn').length).toBe(2);
+      expect(document.querySelector('.rune-table-bar')).toBeTruthy();
+      editor.destroy();
+      editor = null;
+      expect(document.querySelectorAll('.rune-table-add-btn').length).toBe(0);
+      expect(document.querySelector('.rune-table-bar')).toBeNull();
+    });
+
+    it('the floating toolbar Col + button adds a column at the caret', () => {
+      create({ extensions: [Paragraph, Table], content: '<p>x</p>' });
+      editor.cmd('insertTable', 2, 3);
+      placeCaret(editor.content.querySelector('table.rune-table th'));
+      editor.events.emit('selectionchange', { editor });
+
+      const bar = document.querySelector('.rune-table-bar');
+      const colPlus = [...bar.querySelectorAll('.rune-table-bar-btn')].find(b => b.textContent === 'Col +');
+      colPlus.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      expect(editor.content.querySelectorAll('table.rune-table thead th').length).toBe(4);
+    });
+  });
+
+  describe('callout enter handling', () => {
+    const CALLOUT = (bodyHtml) =>
+      `<div class="rune-callout rune-callout--yellow" data-type="callout">` +
+      `<span class="rune-callout-icon" contenteditable="false">💡</span>` +
+      `<div class="rune-callout-body">${bodyHtml}</div></div><p>after</p>`;
+
+    function pressEnter(node, container, offset) {
+      const range = document.createRange();
+      if (container) range.setStart(container, offset);
+      else { range.selectNodeContents(node); range.collapse(true); }
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      node.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    }
+
+    it('Enter on an empty callout body exits into a paragraph below', () => {
+      create({ extensions: [Paragraph, Callout], content: CALLOUT('<br>') });
+      const body = editor.content.querySelector('.rune-callout-body');
+      pressEnter(body);
+
+      const callout = editor.content.querySelector('.rune-callout');
+      const next = callout.nextElementSibling;
+      expect(next.tagName).toBe('P');
+      expect(next.textContent).toBe('');
+    });
+
+    it('Enter inside text keeps the break in the body (no block split, no exit)', () => {
+      const exec = vi.fn(() => true);
+      const prevExec = document.execCommand;
+      document.execCommand = exec;
+      try {
+        create({ extensions: [Paragraph, Callout], content: CALLOUT('hello') });
+        const body = editor.content.querySelector('.rune-callout-body');
+        pressEnter(body, body.firstChild, 5); // caret at end of "hello"
+
+        expect(exec).toHaveBeenCalledWith('insertLineBreak');
+        // The only paragraph after the callout is still the original "after".
+        const callout = editor.content.querySelector('.rune-callout');
+        expect(callout.nextElementSibling.textContent).toBe('after');
+      } finally {
+        document.execCommand = prevExec;
+      }
+    });
+
+    it('Enter on an empty trailing line exits and trims the dangling break', () => {
+      create({ extensions: [Paragraph, Callout], content: CALLOUT('hello<br><br>') });
+      const body = editor.content.querySelector('.rune-callout-body');
+      pressEnter(body, body, 2); // caret after the first <br>, on the empty line
+
+      expect(body.textContent).toBe('hello');
+      expect(body.querySelectorAll('br').length).toBe(0);
+      const callout = editor.content.querySelector('.rune-callout');
+      expect(callout.nextElementSibling.tagName).toBe('P');
+    });
+  });
+
+  describe('security', () => {
+    it('setLink rejects javascript: URIs', () => {
+      create({ content: '<p>text</p>' });
+      editor.cmd('setLink', 'javascript:alert(1)', 'evil');
+      expect(editor.getHtml()).not.toContain('javascript:');
+    });
+
+    it('insertImage rejects dangerous URLs', () => {
+      const e = create({
+        extensions: [Paragraph, Image],
+        content: '<p>text</p>',
+      });
+      e.cmd('insertImage', 'javascript:alert(1)');
+      expect(e.getHtml()).not.toContain('javascript:');
+    });
+
+    it('setLink rejects data:image/svg+xml (SVG script vector)', () => {
+      create({ content: '<p>text</p>' });
+      editor.cmd('setLink', 'data:image/svg+xml,<svg onload=alert(1)>', 'x');
+      expect(editor.getHtml()).not.toContain('data:image/svg');
+      expect(editor.getHtml()).not.toContain('<svg');
+    });
+
+    it('setHtml strips event handlers and dangerous tags', () => {
+      create();
+      editor.setHtml('<p>ok</p><img src=x onerror="alert(1)"><script>alert(2)</script>');
+      const html = editor.getHtml();
+      expect(html).not.toContain('onerror');
+      expect(html).not.toContain('<script');
+      expect(html).toContain('ok');
+    });
+
+    it('setHtml strips an iframe with a non-embed / javascript src', () => {
+      create();
+      editor.setHtml('<iframe src="javascript:alert(1)"></iframe><iframe src="https://evil.example.com"></iframe>');
+      const html = editor.getHtml();
+      expect(html).not.toContain('<iframe');
+      expect(html).not.toContain('javascript:');
+    });
+
+    it('sanitizeContent() keeps a sandboxed YouTube embed', () => {
+      // Tested at the sanitizer level to avoid happy-dom fetching a live iframe.
+      const out = sanitizeContent('<figure class="rune-video-block"><iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ"></iframe></figure>');
+      expect(out).toContain('youtube.com/embed/dQw4w9WgXcQ');
+      expect(out).toMatch(/sandbox="allow-scripts allow-same-origin"/);
+    });
+
+    it('sanitizeContent() drops a non-embed iframe', () => {
+      expect(sanitizeContent('<iframe src="https://evil.example.com"></iframe>')).not.toContain('<iframe');
+      expect(sanitizeContent('<iframe src="javascript:alert(1)"></iframe>')).not.toContain('<iframe');
+    });
+
+    it('insertVideo adds east/south/corner resize handles to the video block', () => {
+      create({ extensions: [Paragraph, Heading, VideoEmbed] });
+      editor.cmd('insertVideo', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+      const wrap = editor.content.querySelector('.rune-video-block .rune-video-wrap');
+      for (const dir of ['e', 's', 'se']) {
+        expect(wrap.querySelectorAll(`.rune-video-handle--${dir}`).length).toBe(1);
+      }
+    });
+
+    it('setHtml retrofits resize handles onto a handle-less video block', () => {
+      create({ extensions: [Paragraph, Heading, VideoEmbed] });
+      editor.setHtml('<figure class="rune-video-block"><div class="rune-video-wrap"><iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ"></iframe></div></figure>');
+      expect(editor.content.querySelectorAll('.rune-video-handle').length).toBe(3);
+    });
+
+    it('does not duplicate handles on a video that already has them', () => {
+      create({ extensions: [Paragraph, Heading, VideoEmbed] });
+      editor.cmd('insertVideo', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+      editor._notifyChange(); // re-runs the ensureHandles pass
+      expect(editor.content.querySelectorAll('.rune-video-handle').length).toBe(3);
+    });
+
+    it('preserves an inline width and height on a resized video across a round-trip', () => {
+      const out = sanitizeContent('<figure class="rune-video-block" style="width:60%"><div class="rune-video-wrap" style="height:240px"><iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ"></iframe></div></figure>');
+      expect(out).toContain('width:60%');
+      expect(out).toContain('height:240px');
+    });
+
+    it('setHtml preserves contenteditable on editor blocks', () => {
+      create();
+      editor.setHtml('<div class="rune-callout"><span contenteditable="false">x</span><div class="rune-callout-body">body</div></div>');
+      expect(editor.getHtml()).toContain('contenteditable="false"');
+    });
+
+    it('sanitize() adds rel=noopener to target=_blank links', () => {
+      const out = sanitize('<a href="https://x.com" target="_blank">x</a>');
+      expect(out).toContain('rel="noopener noreferrer"');
+    });
+
+    it('sanitize() (paste profile) removes all iframes', () => {
+      const out = sanitize('<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ"></iframe>');
+      expect(out).not.toContain('<iframe');
+    });
+
+    it('sanitizeContent() strips javascript: hrefs but keeps safe links', () => {
+      expect(sanitizeContent('<a href="javascript:alert(1)">x</a>')).not.toContain('javascript:');
+      expect(sanitizeContent('<a href="https://ok.com">x</a>')).toContain('https://ok.com');
+    });
+
+    it('sanitize() removes <template> (content lives outside childNodes)', () => {
+      // template.content is a DocumentFragment the recursive cleaner cannot reach,
+      // so the whole element must be dropped, not just its (unreachable) children.
+      expect(sanitize('<template><img src=x onerror=alert(1)></template>')).toBe('');
+      expect(sanitizeContent('<p>ok</p><template><img onerror=alert(1)></template>')).toBe('<p>ok</p>');
+    });
+
+    it('sanitize() strips url() from inline styles (tracking / escape bypass)', () => {
+      expect(sanitize('<p style="background:url(https://evil.com/x.png)">x</p>')).not.toContain('url(');
+      expect(sanitize('<p style="background:url(\\64 ata:image/png;base64,AAA)">x</p>')).not.toContain('url(');
+      // benign styling survives
+      expect(sanitize('<p style="color:red">x</p>')).toContain('color');
+    });
+  });
+
+  describe('clearFormat', () => {
+    // Select `count` chars starting at `start` within the first text node
+    // found under `host` (depth-first), then run clearFormat.
+    function selectAndClear(start, count, host = editor.content) {
+      const walker = document.createTreeWalker(host, NodeFilter.SHOW_TEXT);
+      const text = walker.nextNode();
+      const range = document.createRange();
+      range.setStart(text, start);
+      range.setEnd(text, start + count);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      editor.cmd('clearFormat');
+    }
+
+    it('removes formatting when the whole inline element is selected', () => {
+      create({ content: '<p><strong>word</strong></p>' });
+      selectAndClear(0, 4);
+      expect(editor.getHtml()).toBe('<p>word</p>');
+    });
+
+    it('removes formatting from a partial (trailing) selection', () => {
+      create({ content: '<p><strong>word</strong></p>' });
+      selectAndClear(2, 2);                       // "rd"
+      expect(editor.getHtml()).toBe('<p><strong>wo</strong>rd</p>');  // only "wo" stays bold
+    });
+
+    it('strips nested inline formatting', () => {
+      create({ content: '<p><strong><em>word</em></strong></p>' });
+      selectAndClear(0, 4);
+      expect(editor.getHtml()).toBe('<p>word</p>');
+    });
+
+    it('clears bold in the middle of a sentence', () => {
+      create({ content: '<p>aa <strong>bb</strong> cc</p>' });
+      const host = editor.content;
+      // select the "bb" inside <strong>
+      const strong = host.querySelector('strong');
+      const range = document.createRange();
+      range.selectNodeContents(strong);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      editor.cmd('clearFormat');
+      expect(editor.getHtml()).toBe('<p>aa bb cc</p>');
+    });
+
+    it('does nothing on a collapsed selection', () => {
+      create({ content: '<p><strong>word</strong></p>' });
+      const text = editor.content.querySelector('strong').firstChild;
+      const range = document.createRange();
+      range.setStart(text, 2);
+      range.collapse(true);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      editor.cmd('clearFormat');
+      expect(editor.getHtml()).toBe('<p><strong>word</strong></p>');
+    });
+
+    function selectAll() {
+      const range = document.createRange();
+      range.selectNodeContents(editor.content);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    it('resets headings to paragraphs', () => {
+      create({ content: '<h2>Title</h2><p>body</p>' });
+      selectAll();
+      editor.cmd('clearFormat');
+      expect(editor.getHtml()).toBe('<p>Title</p><p>body</p>');
+    });
+
+    it('resets blockquote to paragraph', () => {
+      create({ content: '<blockquote>quote</blockquote>' });
+      selectAll();
+      editor.cmd('clearFormat');
+      expect(editor.getHtml()).toBe('<p>quote</p>');
+    });
+
+    it('clears heading + inline but keeps lists intact', () => {
+      create({
+        extensions: [Paragraph, Heading, Bold, BulletList],
+        content: '<h2>T</h2><ul><li>Use the <strong>x</strong></li></ul>',
+      });
+      selectAll();
+      editor.cmd('clearFormat');
+      const html = editor.getHtml();
+      expect(html).toContain('<p>T</p>');       // heading reset
+      expect(html).toContain('<ul>');           // list kept
+      expect(html).toContain('<li>Use the x</li>');
+      expect(html).not.toContain('<strong>');   // inline gone
+    });
+
+    it('resets a heading when the selection bleeds into the next block', () => {
+      // Triple-clicking a heading selects to the start of the following block.
+      // That boundary bleed must not fragment the next block (regression).
+      create({
+        extensions: [Paragraph, Heading, Bold, BulletList],
+        content: '<h3>Title</h3><ul><li>Use the <strong>x</strong></li></ul>',
+      });
+      const h3 = editor.content.querySelector('h3');
+      const li = editor.content.querySelector('li');
+      const range = document.createRange();
+      range.setStart(h3.firstChild, 0);
+      range.setEnd(li.firstChild, 0);            // bleed into the list
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      editor.cmd('clearFormat');
+      const html = editor.getHtml();
+      expect(html).toContain('<p>Title</p>');                  // heading reset
+      expect(html).not.toContain('<h3>');
+      expect(html).toContain('<li>Use the <strong>x</strong></li>'); // list untouched
+      expect(html).not.toContain('<li></li>');                 // no stray empty bullet
+    });
+  });
+});
