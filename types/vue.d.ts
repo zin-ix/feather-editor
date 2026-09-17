@@ -1,6 +1,6 @@
-// Type definitions for feather-editor/vue
+// Type definitions for feather-editor-vue
 import type { Ref, ShallowRef, DefineComponent } from 'vue';
-import type { Editor, EditorOptions } from './index';
+import type { Editor, EditorOptions, Extension } from './index';
 
 export interface UseFeatherResult {
   /** Bind to the mount element: `<div ref="el" />`. */
@@ -13,18 +13,24 @@ export interface UseFeatherResult {
   focus(): void;
 }
 
-export type UseRuneResult = UseFeatherResult;
-
 export function useFeather(options?: EditorOptions): UseFeatherResult;
-export function useRune(options?: EditorOptions): UseRuneResult;
 
-export interface FeatherEditorProps extends Partial<EditorOptions> {
-  class?: string;
+export interface FeatherEditorProps {
+  modelValue?: string | object;
+  content?: string | object;
+  placeholder?: string;
+  outputFormat?: 'html' | 'markdown' | 'text' | 'json';
+  toolbar?: boolean | { items?: string[] };
+  bubbleMenu?: boolean | { items?: string[] };
+  slashMenu?: boolean;
   readOnly?: boolean;
+  readonly?: boolean;
+  disabled?: boolean;
+  attribution?: boolean;
+  minHeight?: string | number;
+  class?: string;
+  extensions?: Extension[];
 }
 
-export type RuneEditorProps = FeatherEditorProps;
-
 export const FeatherEditor: DefineComponent<FeatherEditorProps>;
-export const RuneEditor: DefineComponent<RuneEditorProps>;
 export default FeatherEditor;
