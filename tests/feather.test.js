@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
-import { FeatherEditor, Editor, RuneEditor, icons, StarterKit, createFullEditor, DEFAULT_BOILERPLATE_CONTENT } from '../src/index.js';
+import { FeatherEditor, useFeather, Editor, icons, StarterKit, createFullEditor, DEFAULT_BOILERPLATE_CONTENT } from '../src/index.js';
 
 describe('Feather Editor core & icons', () => {
   let target, editor;
@@ -16,13 +16,14 @@ describe('Feather Editor core & icons', () => {
     target.remove();
   });
 
-  it('exports FeatherEditor, Editor, and RuneEditor aliases', () => {
-    expect(FeatherEditor).toBe(Editor);
-    expect(RuneEditor).toBe(Editor);
+  it('exports Vue component FeatherEditor, useFeather and core Editor', () => {
+    expect(Editor).toBeDefined();
+    expect(FeatherEditor).toBeDefined();
+    expect(useFeather).toBeDefined();
   });
 
-  it('initializes FeatherEditor instance successfully', () => {
-    editor = new FeatherEditor(target, {
+  it('initializes Editor instance successfully', () => {
+    editor = new Editor(target, {
       extensions: StarterKit,
       content: '<p>Hello Feather Editor!</p>',
     });
@@ -47,7 +48,7 @@ describe('Feather Editor core & icons', () => {
   });
 
   it('slash menu items use SVG icons instead of emojis', () => {
-    editor = new FeatherEditor(target, {
+    editor = new Editor(target, {
       extensions: StarterKit,
       content: '<p></p>',
     });

@@ -1,22 +1,21 @@
 /**
- * Feather Editor
+ * Feather Editor for Vue 3
  *
- * A lightweight, zero-dependency rich text editor with clean Feather icons.
- * Framework-agnostic — works with vanilla JS, React, Vue, Svelte, and Web Components.
+ * A lightweight, zero-dependency rich text editor for Vue 3 with clean Feather icons.
+ * Headless by design, paper-canvas ready.
  *
  * Quick start:
  *
- *   import { createFullEditor } from 'feather-editor';
- *   import 'feather-editor/styles';
- *
- *   const editor = createFullEditor('#my-div');
+ *   import { FeatherEditor, StarterKit } from 'feather-editor-vue';
+ *   import 'feather-editor-vue/styles';
  */
 
 import { Editor } from './core/Editor.js';
+import { FeatherEditor, useFeather } from '../adapters/vue/index.js';
 
 export { Editor };
-export { Editor as FeatherEditor };
-export { Editor as RuneEditor };
+export { FeatherEditor, useFeather };
+export default FeatherEditor;
 
 export { createFromConfig }  from './createFromConfig.js';
 export { createFullEditor, DEFAULT_BOILERPLATE_CONTENT } from './boilerplate.js';

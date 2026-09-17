@@ -1,6 +1,6 @@
 # Installation & Setup — Vue 3
 
-How to install and configure **Feather Editor** (the most lightweight rich text editor) in **Vue 3** applications.
+How to install and configure **Feather Editor** (`feather-editor-vue`) in **Vue 3** applications.
 
 - [Requirements](#requirements)
 - [Installation](#installation)
@@ -27,19 +27,19 @@ How to install and configure **Feather Editor** (the most lightweight rich text 
 
 ```bash
 # npm
-npm install feather-editor
+npm install feather-editor-vue
 
 # yarn
-yarn add feather-editor
+yarn add feather-editor-vue
 
 # pnpm
-pnpm add feather-editor
+pnpm add feather-editor-vue
 ```
 
 Import the stylesheet in your app entry (e.g. `main.js` or `App.vue`):
 
 ```js
-import 'feather-editor/styles';
+import 'feather-editor-vue/styles';
 ```
 
 ---
@@ -48,9 +48,9 @@ import 'feather-editor/styles';
 
 | Import Path | Resolves To | Description |
 |---|---|---|
-| `feather-editor/vue` | `adapters/vue/index.js` | Vue 3 Component (`FeatherEditor`) & Composable (`useFeather`) |
-| `feather-editor` | `src/index.js` | Core `Editor`, `createFromConfig`, extensions, and utilities |
-| `feather-editor/styles` | `styles/feather.css` | Minimalist design system and paper canvas styles |
+| `feather-editor-vue` | `src/index.js` | Vue Component (`FeatherEditor`), Composable (`useFeather`), and all extensions |
+| `feather-editor-vue/vue` | `adapters/vue/index.js` | Dedicated Vue 3 Component & Composable subpath |
+| `feather-editor-vue/styles` | `styles/feather.css` | Minimalist design system and paper canvas styles |
 
 ---
 
@@ -63,9 +63,8 @@ The easiest way to integrate Feather Editor into a Vue 3 SFC:
 ```vue
 <script setup>
 import { ref } from 'vue';
-import { FeatherEditor } from 'feather-editor/vue';
-import { StarterKit } from 'feather-editor';
-import 'feather-editor/styles';
+import { FeatherEditor, StarterKit } from 'feather-editor-vue';
+import 'feather-editor-vue/styles';
 
 const content = ref('<p>Hello from Feather Editor in Vue 3!</p>');
 
@@ -115,9 +114,8 @@ For custom layouts where you manage the mount target and editor actions directly
 ```vue
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useFeather } from 'feather-editor/vue';
-import { StarterKit } from 'feather-editor';
-import 'feather-editor/styles';
+import { useFeather, StarterKit } from 'feather-editor-vue';
+import 'feather-editor-vue/styles';
 
 const { el, editor, getHtml, setHtml, cmd, focus } = useFeather({
   extensions: StarterKit,
@@ -150,9 +148,9 @@ const { el, editor, getHtml, setHtml, cmd, focus } = useFeather({
 If instantiating directly in pure JS outside a template:
 
 ```js
-import { createFromConfig } from 'feather-editor';
+import { createFromConfig } from 'feather-editor-vue';
 import config from './feather.config.js';
-import 'feather-editor/styles';
+import 'feather-editor-vue/styles';
 
 const editor = createFromConfig('#app', config, {
   content: '<p>Start writing…</p>',
@@ -192,6 +190,6 @@ Feather Editor includes built-in paper formats for realistic document editing an
 
 | Symptom | Cause | Solution |
 |---|---|---|
-| **Unstyled toolbar or canvas** | Missing CSS import | Add `import 'feather-editor/styles';` to your entry file or component. |
+| **Unstyled toolbar or canvas** | Missing CSS import | Add `import 'feather-editor-vue/styles';` to your entry file or component. |
 | **SSR / Hydration mismatch** | Editor accessing DOM during SSR | Ensure the component is mounted on the client (`onMounted` or Client-Only wrapper). |
 | **Memory leak on route change** | Editor listeners not cleaned up | `FeatherEditor` and `useFeather` auto-destroy on unmount. If using `new Editor()`, call `editor.destroy()` in `onBeforeUnmount`. |

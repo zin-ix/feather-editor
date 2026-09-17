@@ -4,8 +4,8 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
-import { FeatherEditor as CoreEditor, StarterKit } from 'feather-editor';
-import 'feather-editor/styles';
+import { Editor, StarterKit } from '../../src/index.js';
+import '../../styles/feather.css';
 
 const props = defineProps({
   modelValue: { type: String, default: undefined },
@@ -16,6 +16,7 @@ const props = defineProps({
   bubbleMenu: { type: [Boolean, Object], default: true },
   slashMenu: { type: Boolean, default: true },
   readOnly: { type: Boolean, default: false },
+  attribution: { type: Boolean, default: true },
   customClass: { type: String, default: '' },
 });
 
@@ -28,14 +29,15 @@ onMounted(() => {
 
   const initialContent = props.modelValue !== undefined ? props.modelValue : props.content;
 
-  editor = new CoreEditor(editorRef.value, {
+  editor = new Editor(editorRef.value, {
     content: initialContent,
     placeholder: props.placeholder,
-    extensions: props.extensions,
+    extensions: props.extensions?.length ? props.extensions : StarterKit,
     toolbar: props.toolbar,
     bubbleMenu: props.bubbleMenu,
     slashMenu: props.slashMenu,
     readOnly: props.readOnly,
+    attribution: props.attribution,
     onChange(html, inst) {
       emit('update:modelValue', html);
       emit('change', html, inst);
@@ -67,5 +69,6 @@ defineExpose({
   getHtml: () => editor?.getHtml() || '',
   setHtml: (html) => editor?.setHtml(html),
   cmd: (name, ...args) => editor?.cmd(name, ...args),
+  focus: () => editor?.focus(),
 });
 </script>

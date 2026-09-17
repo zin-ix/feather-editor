@@ -1,6 +1,6 @@
 {
-  "name": "feather-editor",
-  "version": "1.2.2",
+  "name": "feather-editor-vue",
+  "version": "1.2.3",
   "publishConfig": {
     "access": "public"
   },

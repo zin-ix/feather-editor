@@ -314,22 +314,29 @@ export function getSelectionRect(): DOMRect | null;
 export function htmlToMarkdown(html: string): string;
 export function markdownToHtml(md: string): string;
 
-export interface RuneMark { type: string; attrs?: Record<string, unknown>; }
-export interface RuneNode {
+export interface FeatherMark { type: string; attrs?: Record<string, unknown>; }
+export interface FeatherNode {
   type: string;
   attrs?: Record<string, unknown>;
-  content?: RuneNode[];
+  content?: FeatherNode[];
   text?: string;
-  marks?: RuneMark[];
+  marks?: FeatherMark[];
   html?: string;
 }
-export interface RuneDoc { type: 'doc'; content: RuneNode[]; }
+export interface FeatherDoc { type: 'doc'; content: FeatherNode[]; }
+export type RuneDoc = FeatherDoc;
+export type RuneNode = FeatherNode;
+export type RuneMark = FeatherMark;
 
 /** Parse editor HTML into a portable JSON document (needs a DOM). */
-export function htmlToJson(html: string): RuneDoc;
+export function htmlToJson(html: string): FeatherDoc;
 /** Render a JSON document to an HTML string (no DOM — server-safe). */
-export function jsonToHtml(doc: RuneDoc): string;
+export function jsonToHtml(doc: FeatherDoc): string;
 export function uid(): string;
 export function sanitize(html: string): string;
 export function sanitizeContent(html: string): string;
 export function normalizeHtml(html: string): string;
+
+export { FeatherEditor, useFeather } from './vue';
+export { default as default } from './vue';
+

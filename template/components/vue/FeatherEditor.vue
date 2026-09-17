@@ -4,10 +4,11 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
-import { FeatherEditor, StarterKit } from 'feather-editor';
-import 'feather-editor/styles';
+import { Editor, StarterKit } from 'feather-editor-vue';
+import 'feather-editor-vue/styles';
 
 const props = defineProps({
+  modelValue: { type: String, default: undefined },
   content: { type: String, default: '' },
   placeholder: { type: String, default: "Write something, or type '/' for commands…" },
   extensions: { type: Array, default: () => StarterKit },
@@ -15,25 +16,30 @@ const props = defineProps({
   bubbleMenu: { type: [Boolean, Object], default: true },
   slashMenu: { type: Boolean, default: true },
   readOnly: { type: Boolean, default: false },
+  attribution: { type: Boolean, default: true },
   customClass: { type: String, default: '' },
 });
 
-const emit = defineEmits(['change', 'ready']);
+const emit = defineEmits(['update:modelValue', 'change', 'ready']);
 const editorRef = ref(null);
 let editor = null;
 
 onMounted(() => {
   if (!editorRef.value) return;
 
-  editor = new FeatherEditor(editorRef.value, {
-    content: props.content,
+  const initialContent = props.modelValue !== undefined ? props.modelValue : props.content;
+
+  editor = new Editor(editorRef.value, {
+    content: initialContent,
     placeholder: props.placeholder,
-    extensions: props.extensions,
+    extensions: props.extensions?.length ? props.extensions : StarterKit,
     toolbar: props.toolbar,
     bubbleMenu: props.bubbleMenu,
     slashMenu: props.slashMenu,
     readOnly: props.readOnly,
+    attribution: props.attribution,
     onChange(html, inst) {
+      emit('update:modelValue', html);
       emit('change', html, inst);
     },
   });
@@ -51,9 +57,18 @@ watch(() => props.readOnly, (val) => {
   val ? editor.disable() : editor.enable();
 });
 
+watch(() => props.modelValue !== undefined ? props.modelValue : props.content, (newVal) => {
+  if (!editor || newVal === undefined) return;
+  if (newVal !== editor.getHtml()) {
+    editor.setHtml(newVal);
+  }
+});
+
 defineExpose({
   getEditor: () => editor,
   getHtml: () => editor?.getHtml() || '',
   setHtml: (html) => editor?.setHtml(html),
+  cmd: (name, ...args) => editor?.cmd(name, ...args),
+  focus: () => editor?.focus(),
 });
 </script>

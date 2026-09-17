@@ -1,13 +1,14 @@
 import { ref, shallowRef, onMounted, onBeforeUnmount, watch } from 'vue';
 import { Editor } from '../../src/core/Editor.js';
+import { StarterKit } from '../../src/extensions/index.js';
 
 /**
  * useFeather — Vue 3 composable for Feather Editor.
  *
  * Usage:
  *   <script setup>
- *   import { useFeather } from 'feather-editor/vue';
- *   const { el, editor, getHtml } = useFeather({ extensions: StarterKit, content: '<p>Hi</p>' });
+ *   import { useFeather } from 'feather-editor-vue';
+ *   const { el, editor, getHtml } = useFeather({ content: '<p>Hi</p>' });
  *   </script>
  *   <template><div ref="el" /></template>
  */
@@ -17,8 +18,13 @@ export function useFeather(options = {}) {
 
   onMounted(() => {
     if (!el.value) return;
+    const extensions = options.extensions && options.extensions.length > 0
+      ? options.extensions
+      : StarterKit;
+
     editor.value = new Editor(el.value, {
       ...options,
+      extensions,
       onChange(html, instance) { options.onChange?.(html, instance); },
     });
     if (options.readOnly) editor.value.disable();
@@ -53,4 +59,4 @@ export function useFeather(options = {}) {
   };
 }
 
-export const useRune = useFeather;
+export default useFeather;

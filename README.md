@@ -4,7 +4,7 @@
 
 **The most lightweight rich text editor for Vue 3 — zero dependencies, headless, modular, and fast.**
 
-[![npm version](https://img.shields.io/npm/v/feather-editor?style=flat-square&color=18181b&label=npm)](https://www.npmjs.com/package/feather-editor)
+[![npm version](https://img.shields.io/npm/v/feather-editor-vue?style=flat-square&color=18181b&label=npm)](https://www.npmjs.com/package/feather-editor-vue)
 [![Vue 3](https://img.shields.io/badge/Vue-3.x-42b883?style=flat-square&logo=vuedotjs&logoColor=white)](https://vuejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 [![Zero dependencies](https://img.shields.io/badge/dependencies-zero-blue?style=flat-square)](package.json)
@@ -20,7 +20,7 @@
 Most rich text editors are either too heavy (ProseMirror, Slate) or too opinionated (Quill). **Feather Editor** is the most lightweight rich text editor for Vue 3 — a **zero-dependency**, headless WYSIWYG editor that provides absolute control without the bloat.
 
 - 🪶 **Ultra-Lightweight** — zero runtime dependencies, pure vanilla JS core, minimal bundle footprint
-- 💚 **Dedicated Vue 3 Support** — native `FeatherEditor` component and `useFeather` composable
+- 💚 **Dedicated Vue 3 Support** — direct root import of `FeatherEditor` component and `useFeather` composable
 - 🎛 **Config-Driven** — enable/disable every block, mark, and plugin from a single `feather.config.js`
 - 🎨 **Headless by Design** — 100% styled via CSS custom properties (`styles/feather.css`)
 - 🔌 **Extensible Architecture** — add custom blocks, marks, and plugins with plain JavaScript objects
@@ -33,19 +33,19 @@ Most rich text editors are either too heavy (ProseMirror, Slate) or too opiniona
 
 ```bash
 # npm
-npm install feather-editor
+npm install feather-editor-vue
 
 # yarn
-yarn add feather-editor
+yarn add feather-editor-vue
 
 # pnpm
-pnpm add feather-editor
+pnpm add feather-editor-vue
 ```
 
 Import the stylesheet once in your app entry point (e.g. `main.js`):
 
 ```js
-import 'feather-editor/styles';
+import 'feather-editor-vue/styles';
 ```
 
 ---
@@ -57,9 +57,8 @@ import 'feather-editor/styles';
 ```vue
 <script setup>
 import { ref } from 'vue';
-import { FeatherEditor } from 'feather-editor/vue';
-import { StarterKit } from 'feather-editor';
-import 'feather-editor/styles';
+import { FeatherEditor, StarterKit } from 'feather-editor-vue';
+import 'feather-editor-vue/styles';
 
 const content = ref('<p>Hello from Feather Editor in Vue 3!</p>');
 
@@ -82,9 +81,8 @@ function handleChange(html) {
 
 ```vue
 <script setup>
-import { useFeather } from 'feather-editor/vue';
-import { StarterKit } from 'feather-editor';
-import 'feather-editor/styles';
+import { useFeather, StarterKit } from 'feather-editor-vue';
+import 'feather-editor-vue/styles';
 
 const { el, editor, getHtml, setHtml, cmd, focus } = useFeather({
   extensions: StarterKit,
