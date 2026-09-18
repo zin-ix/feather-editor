@@ -31,7 +31,7 @@
   --feather-font-mono:          'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
   --feather-font-size:          15px;
   --feather-line-height:        1.7;
-  --feather-paper-margin:       1in; /* Standard 1-inch (25.4mm) formal document margin */
+  --feather-paper-margin:       2.5rem 3rem; /* Balanced document canvas padding */
 
   /* Sizing & Radius */
   --feather-radius:             6px;
@@ -366,10 +366,12 @@
 .feather-content h2, .rune-content h2 { font-size: 1.4em;  margin-top: 1em; }
 .feather-content h3, .rune-content h3 { font-size: 1.15em; margin-top: 0.75em; }
 
+.feather-content > *:first-child,
+.rune-content > *:first-child,
 .feather-content h1:first-child, .rune-content h1:first-child,
 .feather-content h2:first-child, .rune-content h2:first-child,
 .feather-content h3:first-child, .rune-content h3:first-child {
-  margin-top: 0;
+  margin-top: 0 !important;
 }
 
 .feather-content ul:not(.feather-task-list):not(.rune-task-list),

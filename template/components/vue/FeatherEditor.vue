@@ -126,11 +126,12 @@ const canvasStyle = computed(() => {
   const rawMargin = props.margin || props.pageMargin;
   if (rawMargin) {
     const marginPresets = {
-      normal: '1in',
-      standard: '1in',
-      narrow: '0.5in',
-      moderate: '1in 0.75in',
-      wide: '1in 2in',
+      normal: '2.5rem 3rem',
+      standard: '2.5rem 3rem',
+      compact: '1.5rem 2rem',
+      narrow: '1.5rem 2rem',
+      moderate: '2rem 2.5rem',
+      wide: '1in',
     };
     styles['--feather-paper-margin'] = marginPresets[rawMargin] || rawMargin;
   }
