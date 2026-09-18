@@ -32,6 +32,8 @@ export const FeatherEditor = defineComponent({
     disabled: { type: Boolean, default: false }, // alias
     attribution: { type: Boolean, default: true },
     minHeight: { type: [String, Number], default: undefined },
+    margin: { type: String, default: undefined }, // '1in', '20mm', '0.5in', 'narrow', 'normal', 'moderate', 'wide'
+    pageMargin: { type: String, default: undefined }, // alias
     class: { type: String, default: '' },
     extensions: { type: Array, default: () => StarterKit },
   },
@@ -106,17 +108,29 @@ export const FeatherEditor = defineComponent({
     });
 
     const styleObj = computed(() => {
+      const styles = {};
       if (props.minHeight) {
         const minH = typeof props.minHeight === 'number' ? `${props.minHeight}px` : props.minHeight;
-        return { '--feather-canvas-min-height': minH };
+        styles['--feather-canvas-min-height'] = minH;
+      } else if (selectedPaper.value === 'a4') {
+        styles['--feather-canvas-min-height'] = props.landscape ? '700px' : '1020px';
+      } else if (selectedPaper.value === 'letter') {
+        styles['--feather-canvas-min-height'] = props.landscape ? '720px' : '950px';
       }
-      if (selectedPaper.value === 'a4') {
-        return { '--feather-canvas-min-height': props.landscape ? '700px' : '1020px' };
+
+      const rawMargin = props.margin || props.pageMargin;
+      if (rawMargin) {
+        const marginPresets = {
+          normal: '1in',
+          standard: '1in',
+          narrow: '0.5in',
+          moderate: '1in 0.75in',
+          wide: '1in 2in',
+        };
+        styles['--feather-paper-margin'] = marginPresets[rawMargin] || rawMargin;
       }
-      if (selectedPaper.value === 'letter') {
-        return { '--feather-canvas-min-height': props.landscape ? '720px' : '950px' };
-      }
-      return {};
+
+      return styles;
     });
 
     const paperClasses = computed(() => {

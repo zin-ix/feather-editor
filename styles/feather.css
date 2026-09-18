@@ -31,6 +31,7 @@
   --feather-font-mono:          'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
   --feather-font-size:          15px;
   --feather-line-height:        1.7;
+  --feather-paper-margin:       1in; /* Standard 1-inch (25.4mm) formal document margin */
 
   /* Sizing & Radius */
   --feather-radius:             6px;
@@ -1310,10 +1311,10 @@ table.feather-table th, table.feather-table td,
 
 .feather-paper-sheet .feather-content,
 .feather-paper-sheet .rune-content {
-  padding: 3rem 3.5rem;
+  padding: var(--feather-paper-margin, 1in) !important;
   border: none;
-  height: 100%;
-  overflow: auto;
+  min-height: inherit;
+  box-sizing: border-box;
 }
 
 .feather-paper-sheet .feather-wrapper,
@@ -1330,6 +1331,11 @@ table.feather-table th, table.feather-table td,
 }
 
 /* ── Print Media ───────────────────────────────────────────── */
+@page {
+  size: auto;
+  margin: var(--feather-paper-margin, 1in);
+}
+
 @media print {
   body {
     background: #ffffff !important;
