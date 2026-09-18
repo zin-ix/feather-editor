@@ -318,7 +318,7 @@
   outline: none;
   padding: 1.5rem 2rem 3rem;
   line-height: var(--feather-line-height);
-  min-height: 200px;
+  min-height: var(--feather-canvas-min-height, 200px);
   caret-color: var(--feather-fg);
   color: var(--feather-fg);
   background: var(--feather-bg);
@@ -371,14 +371,42 @@
   margin-top: 0;
 }
 
-.feather-content ul, .rune-content ul,
-.feather-content ol, .rune-content ol {
-  margin: 4px 0;
-  padding-left: 1.5em;
+.feather-content ul:not(.feather-task-list):not(.rune-task-list),
+.rune-content ul:not(.feather-task-list):not(.rune-task-list) {
+  list-style-type: disc !important;
+  margin: 6px 0;
+  padding-left: 1.75em !important;
 }
 
-.feather-content li, .rune-content li {
+.feather-content ol,
+.rune-content ol {
+  list-style-type: decimal !important;
+  margin: 6px 0;
+  padding-left: 1.75em !important;
+}
+
+.feather-content ul:not(.feather-task-list):not(.rune-task-list) > li,
+.rune-content ul:not(.feather-task-list):not(.rune-task-list) > li {
+  display: list-item !important;
+  list-style-type: disc !important;
   padding: 2px 0;
+}
+
+.feather-content ol > li,
+.rune-content ol > li {
+  display: list-item !important;
+  list-style-type: decimal !important;
+  padding: 2px 0;
+}
+
+.feather-content ul ul:not(.feather-task-list):not(.rune-task-list),
+.rune-content ul ul:not(.feather-task-list):not(.rune-task-list) {
+  list-style-type: circle !important;
+}
+
+.feather-content ul ul ul:not(.feather-task-list):not(.rune-task-list),
+.rune-content ul ul ul:not(.feather-task-list):not(.rune-task-list) {
+  list-style-type: square !important;
 }
 
 .feather-content blockquote, .rune-content blockquote {
@@ -1220,51 +1248,64 @@ table.feather-table th, table.feather-table td,
 }
 
 /* Paper Sizes at 96dpi standard screen / print layout */
-.feather-paper--a4 {
-  width: 794px;
-  height: 1123px;
+.feather-paper--a4,
+.feather-editor--a4 {
+  width: 100%;
+  max-width: 794px;
+  min-height: 1123px;
 }
 
-.feather-paper--letter {
-  width: 816px;
-  height: 1056px;
+.feather-paper--letter,
+.feather-editor--letter {
+  width: 100%;
+  max-width: 816px;
+  min-height: 1056px;
 }
 
-.feather-paper--legal {
-  width: 816px;
-  height: 1344px;
+.feather-paper--legal,
+.feather-editor--legal {
+  width: 100%;
+  max-width: 816px;
+  min-height: 1344px;
 }
 
-.feather-paper--a5 {
-  width: 559px;
-  height: 794px;
+.feather-paper--a5,
+.feather-editor--a5 {
+  width: 100%;
+  max-width: 559px;
+  min-height: 794px;
 }
 
-.feather-paper--fluid {
+.feather-paper--fluid,
+.feather-editor--fluid {
   width: 100%;
   max-width: 860px;
   min-height: 700px;
 }
 
 /* Landscape orientation */
-.feather-paper--a4.feather-paper--landscape {
-  width: 1123px;
-  height: 794px;
+.feather-paper--a4.feather-paper--landscape,
+.feather-editor--a4.feather-editor--landscape {
+  max-width: 1123px;
+  min-height: 794px;
 }
 
-.feather-paper--letter.feather-paper--landscape {
-  width: 1056px;
-  height: 816px;
+.feather-paper--letter.feather-paper--landscape,
+.feather-editor--letter.feather-editor--landscape {
+  max-width: 1056px;
+  min-height: 816px;
 }
 
-.feather-paper--legal.feather-paper--landscape {
-  width: 1344px;
-  height: 816px;
+.feather-paper--legal.feather-paper--landscape,
+.feather-editor--legal.feather-editor--landscape {
+  max-width: 1344px;
+  min-height: 816px;
 }
 
-.feather-paper--a5.feather-paper--landscape {
-  width: 794px;
-  height: 559px;
+.feather-paper--a5.feather-paper--landscape,
+.feather-editor--a5.feather-editor--landscape {
+  max-width: 794px;
+  min-height: 559px;
 }
 
 .feather-paper-sheet .feather-content,

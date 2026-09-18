@@ -5,9 +5,10 @@ import { StarterKit } from '../../src/extensions/index.js';
 /**
  * FeatherEditor — drop-in Vue 3 component.
  *
- *   <FeatherEditor v-model="content" placeholder="Enter specifications..." />
+ *   <FeatherEditor v-model="content" placeholder="Enter specifications..." paper="a4" />
  *
- * Drop-in replacement for SimpleEditorVue with HTML, Markdown, or Plain Text v-model support.
+ * Drop-in replacement for SimpleEditorVue with HTML, Markdown, or Plain Text v-model support
+ * and built-in paper sizing (A4, Letter, Legal, A5, Fluid).
  */
 export const FeatherEditor = defineComponent({
   name: 'FeatherEditor',
@@ -20,6 +21,9 @@ export const FeatherEditor = defineComponent({
       default: 'html', // 'html' | 'markdown' | 'text' | 'json'
       validator: (v) => ['html', 'markdown', 'text', 'json'].includes(v),
     },
+    paper: { type: String, default: undefined }, // 'a4' | 'letter' | 'legal' | 'a5' | 'fluid'
+    paperSize: { type: String, default: undefined }, // alias
+    landscape: { type: Boolean, default: false },
     toolbar: { type: [Boolean, Object], default: true },
     bubbleMenu: { type: [Boolean, Object], default: true },
     slashMenu: { type: Boolean, default: true },
@@ -34,6 +38,7 @@ export const FeatherEditor = defineComponent({
   emits: ['update:modelValue', 'change', 'ready'],
   setup(props, { emit, expose }) {
     const isLocked = computed(() => props.readOnly || props.readonly || props.disabled);
+    const selectedPaper = computed(() => props.paper || props.paperSize);
     const initialContent = props.modelValue !== undefined ? props.modelValue : props.content;
 
     function getFormattedOutput(editorInstance) {
@@ -101,14 +106,28 @@ export const FeatherEditor = defineComponent({
     });
 
     const styleObj = computed(() => {
-      if (!props.minHeight) return {};
-      const minH = typeof props.minHeight === 'number' ? `${props.minHeight}px` : props.minHeight;
-      return { '--feather-canvas-min-height': minH };
+      if (props.minHeight) {
+        const minH = typeof props.minHeight === 'number' ? `${props.minHeight}px` : props.minHeight;
+        return { '--feather-canvas-min-height': minH };
+      }
+      if (selectedPaper.value === 'a4') {
+        return { '--feather-canvas-min-height': props.landscape ? '700px' : '1020px' };
+      }
+      if (selectedPaper.value === 'letter') {
+        return { '--feather-canvas-min-height': props.landscape ? '720px' : '950px' };
+      }
+      return {};
+    });
+
+    const paperClasses = computed(() => {
+      const p = selectedPaper.value;
+      if (!p) return '';
+      return `feather-paper-sheet feather-paper--${p} ${props.landscape ? 'feather-paper--landscape' : ''}`.trim();
     });
 
     return () => h('div', {
       ref: api.el,
-      class: `feather-editor-container rune-editor-container ${props.class}`.trim(),
+      class: `feather-editor-container rune-editor-container ${paperClasses.value} ${props.class}`.trim(),
       style: styleObj.value,
     });
   },
